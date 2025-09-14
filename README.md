@@ -18,10 +18,9 @@ Raven B4, but for those who can't afford it.
 Raven B4, but not only for Hypixel.
 
 <a href="https://discord.gg/2edvHwhYKf"><img src="https://invidget.switchblade.xyz/2edvHwhYKf" alt="https://discord.gg/2edvHwhYKf"/></a><br>
-[QQ Group (645021103)](https://qm.qq.com/q/vv0xPdfc6A)
 
-![2024-08-13_10 14 36](https://github.com/user-attachments/assets/36e8920e-336e-4b62-ae3f-6b9962920812)
-![Screenshot 2024-08-13 084510](https://github.com/user-attachments/assets/85637f18-9d6b-47d9-9dc2-cb8594aff585)
+![menu](https://github.com/user-attachments/assets/1c928337-525b-4a89-ab6f-811b9836fdab)
+![gui](https://cdn.discordapp.com/attachments/1286781817138970624/1416488607283417129/2025-09-13_11.19.47.png?ex=68c858d1&is=68c70751&hm=acda1a2a3da5a6e9c0c4f2c5c2485c664ed7dd22ad7959aaebc41d75c8be8d86&)
 </div>
 
 ## How do I build this client?
@@ -65,12 +64,8 @@ Feel free to raise an issue or submit a pull request.
 
 If you want to co-develop this project with me, please contact me.
 
-You can also support us on [Patreon](https://www.patreon.com/xia__mc)!
-
 <div align="center">
 
-[!![-preview](https://github.com/user-attachments/assets/ac50e6e5-3227-4ee9-9881-2e7b8ba47861)](https://www.patreon.com/xia__mc)
-
-<img src="https://github.com/SAWARATSUKI/KawaiiLogos/blob/main/IntelliJ IDEA/IntelliJ IDEA.png" alt="Java" width="500" />
+DM qloha on Discord if you want to support! (LTC is good c")
 
 </div>
