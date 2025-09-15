@@ -62,9 +62,9 @@ public class CategoryComponent {
     private static final int categoryOpenColor = new Color(135, 238, 144).getRGB();
 
     // new theme
-    private static final int TRANSLUCENT_NEW_BACKGROUND = new Color(210, 210, 210, 200).getRGB();
-    private static final int NEW_BACKGROUND = new Color(210, 210, 210, 255).getRGB();
-    private static final int NEW_CATEGORY_NAME_COLOR = new Color(100, 100, 100).getRGB();
+    public static final int TRANSLUCENT_NEW_BACKGROUND = new Color(210, 210, 210, 200).getRGB();
+    public static final int NEW_BACKGROUND = new Color(210, 210, 210, 255).getRGB();
+    public static final int NEW_CATEGORY_NAME_COLOR = new Color(100, 100, 100).getRGB();
 
     public CategoryComponent(Module.category category) {
         this.categoryName = category;

@@ -11,12 +11,15 @@ import keystrokesmod.module.Module;
 import keystrokesmod.module.ModuleManager;
 import keystrokesmod.module.impl.client.CommandLine;
 import keystrokesmod.module.impl.client.Gui;
+import keystrokesmod.module.setting.impl.SubMode;
 import keystrokesmod.utility.Commands;
 import keystrokesmod.utility.Timer;
 import keystrokesmod.utility.Utils;
 import keystrokesmod.utility.font.FontManager;
 import keystrokesmod.utility.font.IFont;
+import keystrokesmod.utility.profile.ProfileModule;
 import keystrokesmod.utility.render.GradientBlur;
+import keystrokesmod.utility.render.RenderUtils;
 import net.minecraft.client.gui.*;
 import net.minecraft.client.gui.inventory.GuiInventory;
 import net.minecraftforge.fml.client.config.GuiButtonExt;
@@ -112,6 +115,14 @@ public class ClickGui extends GuiScreen {
         }
         this.searchField.setFocused(false);
 
+        if (ModuleManager.clientTheme.isEnabled() && ModuleManager.clientTheme.clickGui.isToggled()) {
+            this.searchField.setTextColor(0xFFFFFFFF);
+            this.searchField.setDisabledTextColour(0xFFAAAAAA);
+        } else {
+            this.searchField.setTextColor(0xFFE0E0E0);
+            this.searchField.setDisabledTextColour(0xFF707070);
+        }
+
         int btnW = 82, btnH = 18;
         int btnX = this.width - (btnW + 8);
         int btnY = 6;
@@ -152,12 +163,24 @@ public class ClickGui extends GuiScreen {
         }
 
         if (this.searchField != null) {
+            boolean useNewTheme = ModuleManager.clientTheme.isEnabled() && ModuleManager.clientTheme.clickGui.isToggled();
+
+            if (useNewTheme) {
+                drawRect(this.searchField.xPosition - 2, this.searchField.yPosition - 2, 
+                       this.searchField.xPosition + this.searchField.width + 2, 
+                       this.searchField.yPosition + this.searchField.height + 2, 
+                       Gui.translucentBackground.isToggled() ? 
+                       CategoryComponent.TRANSLUCENT_NEW_BACKGROUND : CategoryComponent.NEW_BACKGROUND);
+            }
+
             this.searchField.drawTextBox();
+
             if (!this.searchField.isFocused() && (this.searchField.getText() == null || this.searchField.getText().trim().length() == 0)) {
                 String hint = "Search modules...";
                 int hx = this.searchField.xPosition + 4;
                 int hy = this.searchField.yPosition + (this.searchField.height - this.fontRendererObj.FONT_HEIGHT) / 2;
-                this.fontRendererObj.drawString(hint, hx, hy, 0x77FFFFFF);
+                this.fontRendererObj.drawString(hint, hx, hy, 
+                        useNewTheme ? CategoryComponent.NEW_CATEGORY_NAME_COLOR : 0x77FFFFFF);
             }
         }
 
@@ -255,7 +278,9 @@ public class ClickGui extends GuiScreen {
         if (showSearchResults) {
             String lowerQuery = query.toLowerCase();
             for (Module module : gatherAllModules()) {
-                if (module != null && module.getName() != null && 
+                if (module != null && module.getName() != null &&
+                    !(module instanceof SubMode) &&
+                    module.moduleCategory() != Module.category.profiles && 
                     module.getName().toLowerCase().contains(lowerQuery)) {
                     searchResults.add(module);
                 }
@@ -271,15 +296,22 @@ public class ClickGui extends GuiScreen {
         int panelWidth = this.searchField.width;
         int itemHeight = 14;
         int panelHeight = Math.min(searchResults.size() * itemHeight + 4, 150);
+        boolean useNewTheme = ModuleManager.clientTheme.isEnabled() && ModuleManager.clientTheme.clickGui.isToggled();
 
-        drawRect(panelX, panelY, panelX + panelWidth, panelY + panelHeight, 0xE0000000);
-        drawRect(panelX, panelY, panelX + panelWidth, panelY + 1, 0xFFFFFFFF);
-        drawRect(panelX, panelY, panelX + 1, panelY + panelHeight, 0xFFFFFFFF);
-        drawRect(panelX + panelWidth - 1, panelY, panelX + panelWidth, panelY + panelHeight, 0xFFFFFFFF);
-        drawRect(panelX, panelY + panelHeight - 1, panelX + panelWidth, panelY + panelHeight, 0xFFFFFFFF);
+        if (useNewTheme) {
+            RenderUtils.drawRoundedRectangle(panelX, panelY, panelX + panelWidth, panelY + panelHeight, 5,
+                    Gui.translucentBackground.isToggled() ? CategoryComponent.TRANSLUCENT_NEW_BACKGROUND : CategoryComponent.NEW_BACKGROUND);
+        } else {
+            drawRect(panelX, panelY, panelX + panelWidth, panelY + panelHeight, 0xE0000000);
+            drawRect(panelX, panelY, panelX + panelWidth, panelY + 1, 0xFFFFFFFF);
+            drawRect(panelX, panelY, panelX + 1, panelY + panelHeight, 0xFFFFFFFF);
+            drawRect(panelX + panelWidth - 1, panelY, panelX + panelWidth, panelY + panelHeight, 0xFFFFFFFF);
+            drawRect(panelX, panelY + panelHeight - 1, panelX + panelWidth, panelY + panelHeight, 0xFFFFFFFF);
+        }
 
         if (searchResults.isEmpty()) {
-            getFont().drawString("No results found", panelX + 4, panelY + 6, 0xFFFFFFFF);
+            getFont().drawString("No results found", panelX + 4, panelY + 6, 
+                    useNewTheme ? CategoryComponent.NEW_CATEGORY_NAME_COLOR : 0xFFFFFFFF);
             return;
         }
 
@@ -293,17 +325,37 @@ public class ClickGui extends GuiScreen {
                     mouseY >= resultY && mouseY <= resultY + itemHeight;
 
             if (hovering) {
-                drawRect(panelX + 1, resultY, panelX + panelWidth - 1, resultY + itemHeight, 0xFF444444);
+                if (useNewTheme) {
+                    RenderUtils.drawRoundedRectangle(panelX + 1, resultY, panelX + panelWidth - 1, resultY + itemHeight, 3,
+                            mod.isEnabled() ? Component.NEW_TOGGLE_HOVER_COLOR : Component.NEW_HOVER_COLOR);
+                } else {
+                    drawRect(panelX + 1, resultY, panelX + panelWidth - 1, resultY + itemHeight, 0xFF444444);
+                }
+            } else if (useNewTheme && mod.isEnabled()) {
+                RenderUtils.drawRoundedRectangle(panelX + 1, resultY, panelX + panelWidth - 1, resultY + itemHeight, 3,
+                        Component.NEW_TOGGLE_DEFAULT_COLOR);
             }
 
             String name = mod.getName() != null ? mod.getName() : "Unknown";
-            getFont().drawString(name, panelX + 4, resultY + 3,
-                    mod.isEnabled() ? 0xFF00FF00 : 0xFFFFFFFF);
+            int textColor;
+            if (useNewTheme) {
+                textColor = mod.isEnabled() ? ModuleComponent.NEW_ENABLED_COLOR : ModuleComponent.NEW_DISABLED_COLOR;
+            } else {
+                textColor = mod.isEnabled() ? 0xFF00FF00 : 0xFFFFFFFF;
+            }
+
+            getFont().drawString(name, panelX + 4, resultY + 3, textColor);
+
+            if (mod.isFavorite()) {
+                String star = "★";
+                getFont().drawString(star, panelX + panelWidth - 12, resultY + 3, 0xFFFFD700);
+            }
         }
 
         if (searchResults.size() > 10) {
             getFont().drawString("+ " + (searchResults.size() - 10) + " more...", 
-                    panelX + 4, panelY + panelHeight - 12, 0xFFAAAAAA);
+                    panelX + 4, panelY + panelHeight - 12, 
+                    useNewTheme ? CategoryComponent.NEW_CATEGORY_NAME_COLOR : 0xFFAAAAAA);
         }
     }
 
@@ -349,17 +401,31 @@ public class ClickGui extends GuiScreen {
             int panelX = this.searchField.xPosition;
             int panelY = this.searchField.yPosition + this.searchField.height + 2;
             int panelWidth = this.searchField.width;
+            int itemHeight = 14;
 
             for (int i = 0; i < Math.min(searchResults.size(), 10); i++) {
                 Module mod = searchResults.get(i);
-                int resultY = panelY + (i * 12);
+                int resultY = panelY + (i * itemHeight) + 2;
 
                 if (x >= panelX && x <= panelX + panelWidth &&
-                        y >= resultY && y <= resultY + 12) {
+                        y >= resultY && y <= resultY + itemHeight) {
                     if (m == 0) {
-                        mod.toggle();
+                        if (mod.canBeEnabled()) {
+                            mod.toggle();
+                            if (Raven.currentProfile != null && mod.moduleCategory() != Module.category.profiles) {
+                                ((ProfileModule) Raven.currentProfile.getModule()).saved = false;
+                            }
+                        }
                     } else if (m == 1) {
-                        highlightModule(mod);
+                        if (x > panelX + panelWidth - 15) {
+                            mod.toggleFavorite();
+                            CategoryComponent favoritesCategory = ClickGui.categories.get(Module.category.favorites);
+                            if (favoritesCategory != null) {
+                                favoritesCategory.reloadModules(false);
+                            }
+                        } else {
+                            highlightModule(mod);
+                        }
                     }
                     return;
                 }
