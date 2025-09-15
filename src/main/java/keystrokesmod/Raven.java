@@ -85,6 +85,10 @@ public class Raven {
 
         I18nManager.init();
         AutoUpdate.init();
+
+        try {
+            keystrokesmod.config.FavoritesStorage.loadFavorites(moduleManager.getModules());
+        } catch (Exception ignored2) {}
     }
 
     @SubscribeEvent

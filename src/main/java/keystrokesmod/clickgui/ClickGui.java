@@ -5,6 +5,7 @@ import keystrokesmod.clickgui.components.Component;
 import keystrokesmod.clickgui.components.IComponent;
 import keystrokesmod.clickgui.components.impl.BindComponent;
 import keystrokesmod.clickgui.components.impl.CategoryComponent;
+import keystrokesmod.config.FavoritesStorage;
 import keystrokesmod.clickgui.components.impl.ModuleComponent;
 import keystrokesmod.module.Module;
 import keystrokesmod.module.ModuleManager;
@@ -44,6 +45,12 @@ public class ClickGui extends GuiScreen {
     private Runnable delayedAction = null;
 
     private final GradientBlur blur = new GradientBlur(GradientBlur.Type.LR);
+
+    private GuiButtonExt favoritesOnlyBtn;
+    private boolean favoritesOnly = false;
+    private String lastFilter = "";
+    private GuiTextField searchField;
+
 
     /**
      * to make smooth mouse scrolled
@@ -94,6 +101,61 @@ public class ClickGui extends GuiScreen {
         (this.c = new GuiTextField(1, this.mc.fontRendererObj, 22, this.height - 100, 150, 20)).setMaxStringLength(256);
         this.buttonList.add(this.s = new GuiButtonExt(2, 22, this.height - 70, 150, 20, "Send"));
         this.s.visible = CommandLine.a;
+
+            if (this.searchField == null) {
+                this.searchField = new GuiTextField(3, this.mc.fontRendererObj, 8, 8, 160, 16);
+                this.searchField.setMaxStringLength(64);
+            }
+            this.searchField.setFocused(false);
+
+            int btnW = 82, btnH = 18;
+            int btnX = this.width - (btnW + 8);
+            int btnY = 6;
+            if (this.favoritesOnlyBtn == null) {
+                this.favoritesOnlyBtn = new GuiButtonExt(201, btnX, btnY, btnW, btnH, this.favoritesOnly ? "★ Favorites" : "☆ Favorites");
+                this.buttonList.add(this.favoritesOnlyBtn);
+            } else {
+                this.favoritesOnlyBtn.xPosition = btnX;
+                this.favoritesOnlyBtn.yPosition = btnY;
+                this.favoritesOnlyBtn.width = btnW;
+                this.favoritesOnlyBtn.height = btnH;
+                this.favoritesOnlyBtn.displayString = this.favoritesOnly ? "★ Favorites" : "☆ Favorites";
+                if (!this.buttonList.contains(this.favoritesOnlyBtn)) {
+                    this.buttonList.add(this.favoritesOnlyBtn);
+                }
+            }
+
+            try {
+                keystrokesmod.config.FavoritesStorage.loadFavorites(gatherAllModules());
+            } catch (Exception ignored) {}
+
+            applyFiltersToCategories();
+
+        if (this.searchField == null) {
+            this.searchField = new GuiTextField(3, this.mc.fontRendererObj, 8, 8, 160, 16);
+            this.searchField.setMaxStringLength(64);
+        }
+        this.searchField.setFocused(false);
+
+        if (this.favoritesOnlyBtn == null) {
+            this.favoritesOnlyBtn = new GuiButtonExt(201, btnX, btnY, btnW, btnH, this.favoritesOnly ? "★ Favorites" : "☆ Favorites");
+            this.buttonList.add(this.favoritesOnlyBtn);
+        } else {
+            this.favoritesOnlyBtn.xPosition = btnX;
+            this.favoritesOnlyBtn.yPosition = btnY;
+            this.favoritesOnlyBtn.width = btnW;
+            this.favoritesOnlyBtn.height = btnH;
+            this.favoritesOnlyBtn.displayString = this.favoritesOnly ? "★ Favorites" : "☆ Favorites";
+            if (!this.buttonList.contains(this.favoritesOnlyBtn)) {
+                this.buttonList.add(this.favoritesOnlyBtn);
+            }
+        }
+
+        try {
+            FavoritesStorage.loadFavorites(gatherAllModules());
+        } catch (Exception ignored) {}
+
+        applyFiltersToCategories();
     }
 
     public void drawScreen(int x, int y, float p) {
@@ -110,11 +172,42 @@ public class ClickGui extends GuiScreen {
             guiYMoveLeft -= step;
         }
 
+        if (this.searchField != null) {
+            this.searchField.drawTextBox();
+            if (!this.searchField.isFocused() && (this.searchField.getText() == null || this.searchField.getText().trim().length() == 0)) {
+                String hint = "Search modules...";
+                int hx = this.searchField.xPosition + 4;
+                int hy = this.searchField.yPosition + (this.searchField.height - this.fontRendererObj.FONT_HEIGHT) / 2;
+                this.fontRendererObj.drawString(hint, hx, hy, 0x77FFFFFF);
+            }
+        }
+
+        String q = (this.searchField != null && this.searchField.getText() != null) ? this.searchField.getText().trim() : "";
+        if (!q.equals(this.lastFilter)) {
+            this.lastFilter = q;
+            applyFiltersToCategories();
+        }
+
         if (ModuleManager.clientTheme.isEnabled() && ModuleManager.clientTheme.clickGui.isToggled()) {
             blur.update(0, 0, width, height);
             blur.render(0, 0, width, height, 1, 0.1f);
         } else {
             drawRect(0, 0, this.width, this.height, (int) (this.aR.getValueFloat(0.0F, 0.7F, 2) * 255.0F) << 24);
+        }
+
+        if (this.searchField != null) {
+            this.searchField.drawTextBox();
+            if (!this.searchField.isFocused() && (this.searchField.getText() == null || this.searchField.getText().trim().length() == 0)) {
+                String hint = "Search modules...";
+                int hx = this.searchField.xPosition + 4;
+                int hy = this.searchField.yPosition + (this.searchField.height - this.fontRendererObj.FONT_HEIGHT) / 2;
+                this.fontRendererObj.drawString(hint, hx, hy, 0x77FFFFFF);
+            }
+        }
+
+        if (!q.equals(this.lastFilter)) {
+            this.lastFilter = q;
+            applyFiltersToCategories();
         }
         int r;
 
@@ -209,6 +302,14 @@ public class ClickGui extends GuiScreen {
 
 
     public void mouseClicked(int x, int y, int m) throws IOException {
+        if (this.searchField != null) {
+            this.searchField.mouseClicked(x, y, m);
+        }
+
+                if (this.searchField != null) {
+                    this.searchField.mouseClicked(x, y, m);
+                }
+
         Iterator<CategoryComponent> var4 = clickHistory.stream()
                 .map(category -> categories.get(category))
                 .iterator();
@@ -268,6 +369,14 @@ public class ClickGui extends GuiScreen {
 
     @Override
     public void keyTyped(char t, int k) {
+
+        if (this.searchField != null && this.searchField.textboxKeyTyped(t, k)) {
+
+            this.lastFilter = this.searchField.getText() == null ? "" : this.searchField.getText().trim();
+            applyFiltersToCategories();
+            return;
+        }
+
         if (k == Keyboard.KEY_ESCAPE && !binding()) {
             this.mc.displayGuiScreen(null);
         } else {
@@ -291,6 +400,20 @@ public class ClickGui extends GuiScreen {
     }
 
     public void actionPerformed(GuiButton b) {
+        if (b == this.favoritesOnlyBtn) {
+            this.favoritesOnly = !this.favoritesOnly;
+            this.favoritesOnlyBtn.displayString = this.favoritesOnly ? "★ Favorites" : "☆ Favorites";
+            applyFiltersToCategories();
+            return;
+        }
+
+        if (b == this.favoritesOnlyBtn) {
+            this.favoritesOnly = !this.favoritesOnly;
+            this.favoritesOnlyBtn.displayString = this.favoritesOnly ? "★ Favorites" : "☆ Favorites";
+            applyFiltersToCategories();
+            return;
+        }
+
         if (b == this.s) {
             Commands.rCMD(this.c.getText());
             this.c.setText("");
@@ -298,6 +421,17 @@ public class ClickGui extends GuiScreen {
     }
 
     public void onGuiClosed() {
+        try {
+            FavoritesStorage.saveFavorites(keystrokesmod.Raven.moduleManager.getModules());
+        } catch (Exception ignored) {}
+        try {
+            FavoritesStorage.saveFavorites(gatherAllModules());
+        } catch (Exception ignored) {}
+
+        try {
+            keystrokesmod.config.FavoritesStorage.saveFavorites(gatherAllModules());
+        } catch (Exception ignored) {}
+
         this.aL = null;
         if (this.sf != null) {
             this.sf.cancel(true);
@@ -342,5 +476,25 @@ public class ClickGui extends GuiScreen {
             }
         }
 
+    }
+
+
+    private List<Module> gatherAllModules() {
+        List<Module> all = new ArrayList<>();
+        if (Raven.moduleManager != null) {
+            all.addAll(Raven.moduleManager.getModules());
+        }
+        return all;
+    }
+
+    private void applyFiltersToCategories() {
+        if (categories == null) return;
+        String q = this.lastFilter == null ? "" : this.lastFilter.toLowerCase();
+        for (CategoryComponent comp : categories.values()) {
+            if (comp != null) {
+                comp.setNameFilter(q);
+                comp.setShowFavoritesOnly(this.favoritesOnly);
+            }
+        }
     }
 }

@@ -25,6 +25,14 @@ import java.util.Collection;
 import java.util.Iterator;
 
 public class Module {
+
+    @Setter
+    @Getter
+    private boolean favorite = false;
+
+    public void toggleFavorite() {
+        this.favorite = !this.favorite;
+    }
     @Getter
     @Setter
     private @Nullable I18nModule i18nObject = null;

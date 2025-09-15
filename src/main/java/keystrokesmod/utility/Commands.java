@@ -295,7 +295,7 @@ public class Commands {
 
                 Module targetModule = null;
                 for (Module module : Raven.getModuleManager().getModules()) {
-                    if (Objects.equals(module.getName(), args.get(1))) {
+                    if (module.getName().equalsIgnoreCase(args.get(1))) {
                         targetModule = module;
                         break;
                     }

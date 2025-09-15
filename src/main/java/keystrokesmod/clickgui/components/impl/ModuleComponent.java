@@ -1,6 +1,7 @@
 package keystrokesmod.clickgui.components.impl;
 
 import keystrokesmod.Raven;
+import keystrokesmod.clickgui.ClickGui;
 import keystrokesmod.clickgui.components.Component;
 import keystrokesmod.clickgui.components.IComponent;
 import keystrokesmod.module.Module;
@@ -130,6 +131,27 @@ public class ModuleComponent implements IComponent {
             getFont().drawStringWithShadow(this.mod.getPrettyName(), (float) (this.categoryComponent.getX() + (double) this.categoryComponent.gw() / 2 - getFont().width(this.mod.getPrettyName()) / 2), (float) (this.categoryComponent.getY() + this.o + 4), button_rgb);
         }
         GL11.glPopMatrix();
+
+        GL11.glPopMatrix();
+
+        if (mod.isFavorite()) {
+            String star = "★";
+            int starX = categoryComponent.getX() + 2;
+            int starY = categoryComponent.getY() + o + 4;
+            keystrokesmod.clickgui.ClickGui.getFont().drawString(
+                    star, starX, starY, 0xFFFFD700
+            );
+        }
+
+        if (this.po && !this.settings.isEmpty()) {
+            for (Component c : this.settings) {
+                Setting setting = c.getSetting();
+                if (setting == null || setting.isVisible()) {
+                    c.render();
+                }
+            }
+        }
+
         if (this.po && !this.settings.isEmpty()) {
             for (Component c : this.settings) {
                 Setting setting = c.getSetting();
@@ -213,6 +235,15 @@ public class ModuleComponent implements IComponent {
     public void keyTyped(char t, int k) {
         for (Component c : this.settings) {
             c.keyTyped(t, k);
+        }
+
+        if (mod.isFavorite()) {
+            String star = "★";
+            int starX = categoryComponent.getX() + 2;
+            int starY = categoryComponent.getY() + o + 4;
+            keystrokesmod.clickgui.ClickGui.getFont().drawString(
+                    star, starX, starY, 0xFFFFD700
+            );
         }
     }
 

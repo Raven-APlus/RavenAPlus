@@ -13,6 +13,7 @@ import keystrokesmod.utility.Utils;
 import keystrokesmod.utility.profile.Manager;
 import keystrokesmod.utility.profile.Profile;
 import lombok.Getter;
+import lombok.Setter;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.ScaledResolution;
 import org.lwjgl.opengl.GL11;
@@ -24,6 +25,10 @@ import java.util.Objects;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 public class CategoryComponent {
+    private String nameFilter = ""; // lowercased
+    @Setter
+    private boolean showFavoritesOnly = false;
+
     @Getter
     public List<ModuleComponent> modules = new CopyOnWriteArrayList<>();
     public Module.category categoryName;
@@ -120,6 +125,21 @@ public class CategoryComponent {
         }
 
         render();
+    }
+
+    public void setNameFilter(String lowerCaseFilter) {
+        this.nameFilter = (lowerCaseFilter == null) ? "" : lowerCaseFilter;
+    }
+
+    private boolean passesFilters(keystrokesmod.module.Module m) {
+        if (m == null) return false;
+        if (this.showFavoritesOnly && !m.isFavorite()) return false;
+        if (this.nameFilter != null && !this.nameFilter.isEmpty()) {
+            String n = m.getName();
+            if (n == null) return false;
+            if (!n.toLowerCase().contains(this.nameFilter)) return false;
+        }
+        return true;
     }
 
     public void x(int n) {
