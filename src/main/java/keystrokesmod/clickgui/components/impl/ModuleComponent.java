@@ -132,8 +132,6 @@ public class ModuleComponent implements IComponent {
         }
         GL11.glPopMatrix();
 
-        GL11.glPopMatrix();
-
         if (mod.isFavorite()) {
             String star = "★";
             int starX = categoryComponent.getX() + 2;
@@ -141,15 +139,6 @@ public class ModuleComponent implements IComponent {
             keystrokesmod.clickgui.ClickGui.getFont().drawString(
                     star, starX, starY, 0xFFFFD700
             );
-        }
-
-        if (this.po && !this.settings.isEmpty()) {
-            for (Component c : this.settings) {
-                Setting setting = c.getSetting();
-                if (setting == null || setting.isVisible()) {
-                    c.render();
-                }
-            }
         }
 
         if (this.po && !this.settings.isEmpty()) {
@@ -206,18 +195,30 @@ public class ModuleComponent implements IComponent {
     }
 
     public void onClick(int x, int y, int b) {
-        if (this.isHover(x, y) && b == 0 && this.mod.canBeEnabled()) {
-            this.mod.toggle();
-            if (this.mod.moduleCategory() != Module.category.profiles) {
-                if (Raven.currentProfile != null) {
-                    ((ProfileModule) Raven.currentProfile.getModule()).saved = false;
+        if (this.isHover(x, y)) {
+            if (b == 0 && this.mod.canBeEnabled()) {
+                this.mod.toggle();
+                if (this.mod.moduleCategory() != Module.category.profiles) {
+                    if (Raven.currentProfile != null) {
+                        ((ProfileModule) Raven.currentProfile.getModule()).saved = false;
+                    }
+                }
+            } else if (b == 1) {
+                int moduleRight = this.categoryComponent.getX() + this.categoryComponent.gw();
+                int rightQuarterStart = this.categoryComponent.getX() + (this.categoryComponent.gw() * 3 / 4);
+
+                if (x > rightQuarterStart && x < moduleRight) {
+                    this.mod.toggleFavorite();
+
+                    CategoryComponent favoritesCategory = ClickGui.categories.get(Module.category.favorites);
+                    if (favoritesCategory != null) {
+                        favoritesCategory.reloadModules(false);
+                    }
+                } else {
+                    this.po = !this.po;
+                    this.categoryComponent.render();
                 }
             }
-        }
-
-        if (this.isHover(x, y) && b == 1) {
-            this.po = !this.po;
-            this.categoryComponent.render();
         }
 
         for (Component c : this.settings) {
@@ -229,21 +230,11 @@ public class ModuleComponent implements IComponent {
         for (Component c : this.settings) {
             c.mouseReleased(x, y, m);
         }
-
     }
 
     public void keyTyped(char t, int k) {
         for (Component c : this.settings) {
             c.keyTyped(t, k);
-        }
-
-        if (mod.isFavorite()) {
-            String star = "★";
-            int starX = categoryComponent.getX() + 2;
-            int starY = categoryComponent.getY() + o + 4;
-            keystrokesmod.clickgui.ClickGui.getFont().drawString(
-                    star, starX, starY, 0xFFFFD700
-            );
         }
     }
 

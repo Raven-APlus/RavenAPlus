@@ -50,7 +50,8 @@ public class ClickGui extends GuiScreen {
     private boolean favoritesOnly = false;
     private String lastFilter = "";
     private GuiTextField searchField;
-
+    private List<Module> searchResults = new ArrayList<>();
+    private boolean showSearchResults = false;
 
     /**
      * to make smooth mouse scrolled
@@ -102,41 +103,15 @@ public class ClickGui extends GuiScreen {
         this.buttonList.add(this.s = new GuiButtonExt(2, 22, this.height - 70, 150, 20, "Send"));
         this.s.visible = CommandLine.a;
 
-            if (this.searchField == null) {
-                this.searchField = new GuiTextField(3, this.mc.fontRendererObj, 8, 8, 160, 16);
-                this.searchField.setMaxStringLength(64);
-            }
-            this.searchField.setFocused(false);
-
-            int btnW = 82, btnH = 18;
-            int btnX = this.width - (btnW + 8);
-            int btnY = 6;
-            if (this.favoritesOnlyBtn == null) {
-                this.favoritesOnlyBtn = new GuiButtonExt(201, btnX, btnY, btnW, btnH, this.favoritesOnly ? "★ Favorites" : "☆ Favorites");
-                this.buttonList.add(this.favoritesOnlyBtn);
-            } else {
-                this.favoritesOnlyBtn.xPosition = btnX;
-                this.favoritesOnlyBtn.yPosition = btnY;
-                this.favoritesOnlyBtn.width = btnW;
-                this.favoritesOnlyBtn.height = btnH;
-                this.favoritesOnlyBtn.displayString = this.favoritesOnly ? "★ Favorites" : "☆ Favorites";
-                if (!this.buttonList.contains(this.favoritesOnlyBtn)) {
-                    this.buttonList.add(this.favoritesOnlyBtn);
-                }
-            }
-
-            try {
-                keystrokesmod.config.FavoritesStorage.loadFavorites(gatherAllModules());
-            } catch (Exception ignored) {}
-
-            applyFiltersToCategories();
-
         if (this.searchField == null) {
             this.searchField = new GuiTextField(3, this.mc.fontRendererObj, 8, 8, 160, 16);
             this.searchField.setMaxStringLength(64);
         }
         this.searchField.setFocused(false);
 
+        int btnW = 82, btnH = 18;
+        int btnX = this.width - (btnW + 8);
+        int btnY = 6;
         if (this.favoritesOnlyBtn == null) {
             this.favoritesOnlyBtn = new GuiButtonExt(201, btnX, btnY, btnW, btnH, this.favoritesOnly ? "★ Favorites" : "☆ Favorites");
             this.buttonList.add(this.favoritesOnlyBtn);
@@ -159,6 +134,7 @@ public class ClickGui extends GuiScreen {
     }
 
     public void drawScreen(int x, int y, float p) {
+        int r;
         move:
         if (guiYMoveLeft != 0) {
             int step = (int) (guiYMoveLeft * 0.15);
@@ -186,6 +162,8 @@ public class ClickGui extends GuiScreen {
         if (!q.equals(this.lastFilter)) {
             this.lastFilter = q;
             applyFiltersToCategories();
+
+            updateSearchResults(q);
         }
 
         if (ModuleManager.clientTheme.isEnabled() && ModuleManager.clientTheme.clickGui.isToggled()) {
@@ -195,21 +173,9 @@ public class ClickGui extends GuiScreen {
             drawRect(0, 0, this.width, this.height, (int) (this.aR.getValueFloat(0.0F, 0.7F, 2) * 255.0F) << 24);
         }
 
-        if (this.searchField != null) {
-            this.searchField.drawTextBox();
-            if (!this.searchField.isFocused() && (this.searchField.getText() == null || this.searchField.getText().trim().length() == 0)) {
-                String hint = "Search modules...";
-                int hx = this.searchField.xPosition + 4;
-                int hy = this.searchField.yPosition + (this.searchField.height - this.fontRendererObj.FONT_HEIGHT) / 2;
-                this.fontRendererObj.drawString(hint, hx, hy, 0x77FFFFFF);
-            }
+        if (showSearchResults && !searchResults.isEmpty()) {
+            drawSearchResults(x, y);
         }
-
-        if (!q.equals(this.lastFilter)) {
-            this.lastFilter = q;
-            applyFiltersToCategories();
-        }
-        int r;
 
         if (!Gui.removeWatermark.isToggled()) {
             int h = this.height / 4;
@@ -245,7 +211,6 @@ public class ClickGui extends GuiScreen {
             GuiInventory.drawEntityOnScreen(this.width + 15 - this.aE.getValueInt(0, 40, 2), this.height - 10, 40, (float) (this.width - 25 - x), (float) (this.height - 50 - y), this.mc.thePlayer);
         }
 
-
         if (CommandLine.a) {
             if (!this.s.visible) {
                 this.s.visible = true;
@@ -280,6 +245,43 @@ public class ClickGui extends GuiScreen {
         delayedAction = null;
     }
 
+    private void updateSearchResults(String query) {
+        searchResults.clear();
+        showSearchResults = !query.isEmpty();
+
+        if (showSearchResults) {
+            for (Module module : gatherAllModules()) {
+                if (module.getName().toLowerCase().contains(query.toLowerCase())) {
+                    searchResults.add(module);
+                }
+            }
+        }
+    }
+
+    private void drawSearchResults(int mouseX, int mouseY) {
+        int panelX = this.searchField.xPosition;
+        int panelY = this.searchField.yPosition + this.searchField.height + 2;
+        int panelWidth = this.searchField.width;
+        int panelHeight = Math.min(searchResults.size() * 12, 120);
+
+        drawRect(panelX, panelY, panelX + panelWidth, panelY + panelHeight, 0xFF000000);
+        drawRect(panelX, panelY, panelX + panelWidth, panelY + 1, 0xFFFFFFFF);
+
+        for (int i = 0; i < Math.min(searchResults.size(), 10); i++) {
+            Module mod = searchResults.get(i);
+            int resultY = panelY + (i * 12);
+            boolean hovering = mouseX >= panelX && mouseX <= panelX + panelWidth &&
+                    mouseY >= resultY && mouseY <= resultY + 12;
+
+            if (hovering) {
+                drawRect(panelX, resultY, panelX + panelWidth, resultY + 12, 0xFF333333);
+            }
+
+            getFont().drawString(mod.getName(), panelX + 2, resultY + 2,
+                    mod.isEnabled() ? 0xFF00FF00 : 0xFFFFFFFF);
+        }
+    }
+
     @Override
     public void handleMouseInput() throws IOException {
         super.handleMouseInput();
@@ -299,16 +301,31 @@ public class ClickGui extends GuiScreen {
         }
     }
 
-
-
     public void mouseClicked(int x, int y, int m) throws IOException {
         if (this.searchField != null) {
             this.searchField.mouseClicked(x, y, m);
         }
 
-                if (this.searchField != null) {
-                    this.searchField.mouseClicked(x, y, m);
+        if (showSearchResults && !searchResults.isEmpty()) {
+            int panelX = this.searchField.xPosition;
+            int panelY = this.searchField.yPosition + this.searchField.height + 2;
+            int panelWidth = this.searchField.width;
+
+            for (int i = 0; i < Math.min(searchResults.size(), 10); i++) {
+                Module mod = searchResults.get(i);
+                int resultY = panelY + (i * 12);
+
+                if (x >= panelX && x <= panelX + panelWidth &&
+                        y >= resultY && y <= resultY + 12) {
+                    if (m == 0) {
+                        mod.toggle();
+                    } else if (m == 1) {
+                        highlightModule(mod);
+                    }
+                    return;
                 }
+            }
+        }
 
         Iterator<CategoryComponent> var4 = clickHistory.stream()
                 .map(category -> categories.get(category))
@@ -354,6 +371,19 @@ public class ClickGui extends GuiScreen {
         }
     }
 
+    private void highlightModule(Module module) {
+        for (CategoryComponent category : categories.values()) {
+            if (category.categoryName != Module.category.favorites) {
+                for (ModuleComponent comp : category.getModules()) {
+                    if (comp.mod == module) {
+                        category.fv(true);
+                        return;
+                    }
+                }
+            }
+        }
+    }
+
     public void mouseReleased(int x, int y, int s) {
         if (s == 0) {
             for (CategoryComponent category : categories.values()) {
@@ -369,9 +399,7 @@ public class ClickGui extends GuiScreen {
 
     @Override
     public void keyTyped(char t, int k) {
-
         if (this.searchField != null && this.searchField.textboxKeyTyped(t, k)) {
-
             this.lastFilter = this.searchField.getText() == null ? "" : this.searchField.getText().trim();
             applyFiltersToCategories();
             return;
@@ -407,13 +435,6 @@ public class ClickGui extends GuiScreen {
             return;
         }
 
-        if (b == this.favoritesOnlyBtn) {
-            this.favoritesOnly = !this.favoritesOnly;
-            this.favoritesOnlyBtn.displayString = this.favoritesOnly ? "★ Favorites" : "☆ Favorites";
-            applyFiltersToCategories();
-            return;
-        }
-
         if (b == this.s) {
             Commands.rCMD(this.c.getText());
             this.c.setText("");
@@ -422,14 +443,7 @@ public class ClickGui extends GuiScreen {
 
     public void onGuiClosed() {
         try {
-            FavoritesStorage.saveFavorites(keystrokesmod.Raven.moduleManager.getModules());
-        } catch (Exception ignored) {}
-        try {
             FavoritesStorage.saveFavorites(gatherAllModules());
-        } catch (Exception ignored) {}
-
-        try {
-            keystrokesmod.config.FavoritesStorage.saveFavorites(gatherAllModules());
         } catch (Exception ignored) {}
 
         this.aL = null;
@@ -475,9 +489,7 @@ public class ClickGui extends GuiScreen {
                 yOffSet += 120;
             }
         }
-
     }
-
 
     private List<Module> gatherAllModules() {
         List<Module> all = new ArrayList<>();

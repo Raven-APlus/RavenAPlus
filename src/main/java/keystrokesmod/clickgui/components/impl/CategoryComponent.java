@@ -78,16 +78,26 @@ public class CategoryComponent {
         this.dragging = false;
         int tY = this.buttonHeight + 3;
         this.scale = new ScaledResolution(Minecraft.getMinecraft()).getScaleFactor();
-        this.openCloseAnimation = new Animation(Easing.EASE_OUT_QUART, 600); // EASE_OUT_QUART
+        this.openCloseAnimation = new Animation(Easing.EASE_OUT_QUART, 600);
 
-        for (Module mod : Raven.getModuleManager().inCategory(this.categoryName)) {
-            if (mod instanceof SubMode) {
-                continue;
+        if (this.categoryName == Module.category.favorites) {
+            for (Module mod : Raven.getModuleManager().getModules()) {
+                if (mod.isFavorite()) {
+                    ModuleComponent b = new ModuleComponent(mod, this, tY);
+                    this.modules.add(b);
+                    tY += 16;
+                }
             }
+        } else {
+            for (Module mod : Raven.getModuleManager().inCategory(this.categoryName)) {
+                if (mod instanceof SubMode) {
+                    continue;
+                }
 
-            ModuleComponent b = new ModuleComponent(mod, this, tY);
-            this.modules.add(b);
-            tY += 16;
+                ModuleComponent b = new ModuleComponent(mod, this, tY);
+                this.modules.add(b);
+                tY += 16;
+            }
         }
     }
 
@@ -96,7 +106,15 @@ public class CategoryComponent {
         this.buttonHeight = 13;
         int tY = this.buttonHeight + 3;
 
-        if ((this.categoryName == Module.category.profiles && isProfile) || (this.categoryName == Module.category.scripts && !isProfile)) {
+        if (this.categoryName == Module.category.favorites) {
+            for (Module mod : Raven.getModuleManager().getModules()) {
+                if (mod.isFavorite()) {
+                    ModuleComponent b = new ModuleComponent(mod, this, tY);
+                    this.modules.add(b);
+                    tY += 16;
+                }
+            }
+        } else if ((this.categoryName == Module.category.profiles && isProfile) || (this.categoryName == Module.category.scripts && !isProfile)) {
             ModuleComponent manager = new ModuleComponent(isProfile ? new Manager() : new keystrokesmod.script.Manager(), this, tY);
             this.modules.add(manager);
 
@@ -245,7 +263,6 @@ public class CategoryComponent {
             c = var2.next();
             c.so(o);
         }
-
     }
 
     public int gw() {

@@ -298,6 +298,7 @@ public class Module {
         profiles,
         scripts,
         exploit,
-        experimental
+        experimental,
+        favorites
     }
 }
