@@ -4,6 +4,7 @@ import keystrokesmod.Raven;
 import keystrokesmod.clickgui.ClickGui;
 import keystrokesmod.clickgui.components.Component;
 import keystrokesmod.clickgui.components.IComponent;
+import lombok.Setter;
 import keystrokesmod.module.Module;
 import keystrokesmod.module.ModuleManager;
 import keystrokesmod.module.impl.client.Gui;
@@ -27,6 +28,8 @@ public class ModuleComponent implements IComponent {
     public static final int NEW_ENABLED_COLOR = new Color(255, 255, 255, 0).getRGB();
     public static final int NEW_DISABLED_COLOR = new Color(255, 255, 255).getRGB();
     public Module mod;
+        @Setter
+        private boolean visible = true;
     public CategoryComponent categoryComponent;
     public int o;
     public ArrayList<Component> settings;
@@ -104,6 +107,8 @@ public class ModuleComponent implements IComponent {
     }
 
     public void render() {
+        if (!visible) return;
+
         if (hovering) {
             if (ModuleManager.clientTheme.test.isToggled()) {
                 RenderUtils.drawRoundedRectangle(this.categoryComponent.getX(), this.categoryComponent.getY() + o, this.categoryComponent.getX() + this.categoryComponent.gw(), this.categoryComponent.getY() + 16 + this.o, 5, mod.isEnabled() ? Component.NEW_TOGGLE_HOVER_COLOR : Component.NEW_HOVER_COLOR);
@@ -157,6 +162,8 @@ public class ModuleComponent implements IComponent {
     }
 
     public int gh() {
+        if (!visible) return 0;
+
         if (!this.po) {
             return 16;
         } else {

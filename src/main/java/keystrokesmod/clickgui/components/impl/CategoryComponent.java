@@ -160,6 +160,16 @@ public class CategoryComponent {
         return true;
     }
 
+    public void applyFilter() {
+        if (modules == null) return;
+
+        for (ModuleComponent moduleComponent : modules) {
+            if (moduleComponent == null || moduleComponent.mod == null) continue;
+            moduleComponent.setVisible(passesFilters(moduleComponent.mod));
+        }
+        render();
+    }
+
     public void x(int n) {
         this.x = n;
     }

@@ -106,6 +106,9 @@ public class ClickGui extends GuiScreen {
         if (this.searchField == null) {
             this.searchField = new GuiTextField(3, this.mc.fontRendererObj, 8, 8, 160, 16);
             this.searchField.setMaxStringLength(64);
+        } else {
+            this.searchField.xPosition = 8;
+            this.searchField.yPosition = 8;
         }
         this.searchField.setFocused(false);
 
@@ -173,10 +176,6 @@ public class ClickGui extends GuiScreen {
             drawRect(0, 0, this.width, this.height, (int) (this.aR.getValueFloat(0.0F, 0.7F, 2) * 255.0F) << 24);
         }
 
-        if (showSearchResults && !searchResults.isEmpty()) {
-            drawSearchResults(x, y);
-        }
-
         if (!Gui.removeWatermark.isToggled()) {
             int h = this.height / 4;
             int wd = this.width / 2;
@@ -240,6 +239,10 @@ public class ClickGui extends GuiScreen {
             CommandLine.b = false;
         }
 
+        if (showSearchResults) {
+            drawSearchResults(x, y);
+        }
+
         if (delayedAction != null)
             delayedAction.run();
         delayedAction = null;
@@ -250,8 +253,10 @@ public class ClickGui extends GuiScreen {
         showSearchResults = !query.isEmpty();
 
         if (showSearchResults) {
+            String lowerQuery = query.toLowerCase();
             for (Module module : gatherAllModules()) {
-                if (module.getName().toLowerCase().contains(query.toLowerCase())) {
+                if (module != null && module.getName() != null && 
+                    module.getName().toLowerCase().contains(lowerQuery)) {
                     searchResults.add(module);
                 }
             }
@@ -259,26 +264,46 @@ public class ClickGui extends GuiScreen {
     }
 
     private void drawSearchResults(int mouseX, int mouseY) {
+        if (searchResults == null) return;
+
         int panelX = this.searchField.xPosition;
         int panelY = this.searchField.yPosition + this.searchField.height + 2;
         int panelWidth = this.searchField.width;
-        int panelHeight = Math.min(searchResults.size() * 12, 120);
+        int itemHeight = 14;
+        int panelHeight = Math.min(searchResults.size() * itemHeight + 4, 150);
 
-        drawRect(panelX, panelY, panelX + panelWidth, panelY + panelHeight, 0xFF000000);
+        drawRect(panelX, panelY, panelX + panelWidth, panelY + panelHeight, 0xE0000000);
         drawRect(panelX, panelY, panelX + panelWidth, panelY + 1, 0xFFFFFFFF);
+        drawRect(panelX, panelY, panelX + 1, panelY + panelHeight, 0xFFFFFFFF);
+        drawRect(panelX + panelWidth - 1, panelY, panelX + panelWidth, panelY + panelHeight, 0xFFFFFFFF);
+        drawRect(panelX, panelY + panelHeight - 1, panelX + panelWidth, panelY + panelHeight, 0xFFFFFFFF);
 
-        for (int i = 0; i < Math.min(searchResults.size(), 10); i++) {
+        if (searchResults.isEmpty()) {
+            getFont().drawString("No results found", panelX + 4, panelY + 6, 0xFFFFFFFF);
+            return;
+        }
+
+        int maxDisplay = Math.min(10, searchResults.size());
+        for (int i = 0; i < maxDisplay; i++) {
             Module mod = searchResults.get(i);
-            int resultY = panelY + (i * 12);
+            if (mod == null) continue;
+
+            int resultY = panelY + (i * itemHeight) + 2;
             boolean hovering = mouseX >= panelX && mouseX <= panelX + panelWidth &&
-                    mouseY >= resultY && mouseY <= resultY + 12;
+                    mouseY >= resultY && mouseY <= resultY + itemHeight;
 
             if (hovering) {
-                drawRect(panelX, resultY, panelX + panelWidth, resultY + 12, 0xFF333333);
+                drawRect(panelX + 1, resultY, panelX + panelWidth - 1, resultY + itemHeight, 0xFF444444);
             }
 
-            getFont().drawString(mod.getName(), panelX + 2, resultY + 2,
+            String name = mod.getName() != null ? mod.getName() : "Unknown";
+            getFont().drawString(name, panelX + 4, resultY + 3,
                     mod.isEnabled() ? 0xFF00FF00 : 0xFFFFFFFF);
+        }
+
+        if (searchResults.size() > 10) {
+            getFont().drawString("+ " + (searchResults.size() - 10) + " more...", 
+                    panelX + 4, panelY + panelHeight - 12, 0xFFAAAAAA);
         }
     }
 
@@ -301,9 +326,23 @@ public class ClickGui extends GuiScreen {
         }
     }
 
+    private boolean isMouseOver(GuiTextField field, int mouseX, int mouseY) {
+        return mouseX >= field.xPosition &&
+                mouseX <= field.xPosition + field.width &&
+                mouseY >= field.yPosition &&
+                mouseY <= field.yPosition + field.height;
+    }
+
     public void mouseClicked(int x, int y, int m) throws IOException {
         if (this.searchField != null) {
+            boolean wasOverSearchField = isMouseOver(this.searchField, x, y);
             this.searchField.mouseClicked(x, y, m);
+
+            if (wasOverSearchField) {
+                this.searchField.setFocused(true);
+            } else if (m == 0) {
+                this.searchField.setFocused(false);
+            }
         }
 
         if (showSearchResults && !searchResults.isEmpty()) {
@@ -399,10 +438,12 @@ public class ClickGui extends GuiScreen {
 
     @Override
     public void keyTyped(char t, int k) {
-        if (this.searchField != null && this.searchField.textboxKeyTyped(t, k)) {
-            this.lastFilter = this.searchField.getText() == null ? "" : this.searchField.getText().trim();
-            applyFiltersToCategories();
-            return;
+        if (this.searchField != null && this.searchField.isFocused()) {
+            if (this.searchField.textboxKeyTyped(t, k)) {
+                this.lastFilter = this.searchField.getText() == null ? "" : this.searchField.getText().trim();
+                applyFiltersToCategories();
+                return;
+            }
         }
 
         if (k == Keyboard.KEY_ESCAPE && !binding()) {
@@ -506,7 +547,10 @@ public class ClickGui extends GuiScreen {
             if (comp != null) {
                 comp.setNameFilter(q);
                 comp.setShowFavoritesOnly(this.favoritesOnly);
+                comp.applyFilter();
             }
         }
+
+        updateSearchResults(q);
     }
 }
