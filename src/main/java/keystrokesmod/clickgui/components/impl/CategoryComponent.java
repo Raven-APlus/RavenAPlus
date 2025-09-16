@@ -53,13 +53,13 @@ public class CategoryComponent {
     private float big;
 
     // old theme
-    private static final int translucentBackground = new Color(0, 0, 0, 110).getRGB();
-    private static final int background = new Color(0, 0, 0, 255).getRGB();
-    private static final int regularOutline = new Color(81, 99, 149).getRGB();
-    private static final int regularOutline2 = new Color(97, 67, 133).getRGB();
-    private static final int categoryNameColor = new Color(220, 220, 220).getRGB();
-    private static final int categoryCloseColor = new Color(250, 95, 85).getRGB();
-    private static final int categoryOpenColor = new Color(135, 238, 144).getRGB();
+    public static final int translucentBackground = new Color(0, 0, 0, 110).getRGB();
+    public static final int background = new Color(0, 0, 0, 255).getRGB();
+    public static final int regularOutline = new Color(81, 99, 149).getRGB();
+    public static final int regularOutline2 = new Color(97, 67, 133).getRGB();
+    public static final int categoryNameColor = new Color(220, 220, 220).getRGB();
+    public static final int categoryCloseColor = new Color(250, 95, 85).getRGB();
+    public static final int categoryOpenColor = new Color(135, 238, 144).getRGB();
 
     // new theme
     public static final int TRANSLUCENT_NEW_BACKGROUND = new Color(210, 210, 210, 200).getRGB();

@@ -283,6 +283,7 @@ public class ClickGui extends GuiScreen {
                     module.moduleCategory() != Module.category.profiles && 
                     module.getName().toLowerCase().contains(lowerQuery)) {
                     searchResults.add(module);
+                    if (searchResults.size() >= 5) break;
                 }
             }
         }
@@ -295,27 +296,28 @@ public class ClickGui extends GuiScreen {
         int panelY = this.searchField.yPosition + this.searchField.height + 2;
         int panelWidth = this.searchField.width;
         int itemHeight = 14;
-        int panelHeight = Math.min(searchResults.size() * itemHeight + 4, 150);
+        int maxDisplay = Math.min(5, searchResults.size());
+        int panelHeight = (maxDisplay * itemHeight) + 4;
         boolean useNewTheme = ModuleManager.clientTheme.isEnabled() && ModuleManager.clientTheme.clickGui.isToggled();
 
         if (useNewTheme) {
-            RenderUtils.drawRoundedRectangle(panelX, panelY, panelX + panelWidth, panelY + panelHeight, 5,
+            RenderUtils.drawRoundedRectangle(panelX - 2, panelY, panelX + panelWidth + 2, panelY + panelHeight, 5,
                     Gui.translucentBackground.isToggled() ? CategoryComponent.TRANSLUCENT_NEW_BACKGROUND : CategoryComponent.NEW_BACKGROUND);
         } else {
-            drawRect(panelX, panelY, panelX + panelWidth, panelY + panelHeight, 0xE0000000);
-            drawRect(panelX, panelY, panelX + panelWidth, panelY + 1, 0xFFFFFFFF);
-            drawRect(panelX, panelY, panelX + 1, panelY + panelHeight, 0xFFFFFFFF);
-            drawRect(panelX + panelWidth - 1, panelY, panelX + panelWidth, panelY + panelHeight, 0xFFFFFFFF);
-            drawRect(panelX, panelY + panelHeight - 1, panelX + panelWidth, panelY + panelHeight, 0xFFFFFFFF);
+            RenderUtils.drawRoundedGradientOutlinedRectangle(
+                    panelX - 2, panelY, panelX + panelWidth + 2, panelY + panelHeight, 9,
+                    Gui.translucentBackground.isToggled() ? CategoryComponent.translucentBackground : CategoryComponent.background,
+                    Gui.rainBowOutlines.isToggled() ? RenderUtils.setAlpha(Utils.getChroma(2, 0), 0.5f) : CategoryComponent.regularOutline,
+                    Gui.rainBowOutlines.isToggled() ? RenderUtils.setAlpha(Utils.getChroma(2, 700), 0.5f) : CategoryComponent.regularOutline2
+            );
         }
 
         if (searchResults.isEmpty()) {
             getFont().drawString("No results found", panelX + 4, panelY + 6, 
-                    useNewTheme ? CategoryComponent.NEW_CATEGORY_NAME_COLOR : 0xFFFFFFFF);
+                    useNewTheme ? CategoryComponent.NEW_CATEGORY_NAME_COLOR : CategoryComponent.categoryNameColor);
             return;
         }
 
-        int maxDisplay = Math.min(10, searchResults.size());
         for (int i = 0; i < maxDisplay; i++) {
             Module mod = searchResults.get(i);
             if (mod == null) continue;
@@ -339,9 +341,10 @@ public class ClickGui extends GuiScreen {
             String name = mod.getName() != null ? mod.getName() : "Unknown";
             int textColor;
             if (useNewTheme) {
-                textColor = mod.isEnabled() ? ModuleComponent.NEW_ENABLED_COLOR : ModuleComponent.NEW_DISABLED_COLOR;
+                // Use white text color for both enabled and disabled modules in search results for better readability
+                textColor = mod.isEnabled() ? 0xFFFFFFFF : ModuleComponent.NEW_DISABLED_COLOR;
             } else {
-                textColor = mod.isEnabled() ? 0xFF00FF00 : 0xFFFFFFFF;
+                textColor = mod.isEnabled() ? 0xFF00FF00 : CategoryComponent.categoryNameColor;
             }
 
             getFont().drawString(name, panelX + 4, resultY + 3, textColor);
@@ -350,12 +353,6 @@ public class ClickGui extends GuiScreen {
                 String star = "★";
                 getFont().drawString(star, panelX + panelWidth - 12, resultY + 3, 0xFFFFD700);
             }
-        }
-
-        if (searchResults.size() > 10) {
-            getFont().drawString("+ " + (searchResults.size() - 10) + " more...", 
-                    panelX + 4, panelY + panelHeight - 12, 
-                    useNewTheme ? CategoryComponent.NEW_CATEGORY_NAME_COLOR : 0xFFAAAAAA);
         }
     }
 
@@ -403,7 +400,7 @@ public class ClickGui extends GuiScreen {
             int panelWidth = this.searchField.width;
             int itemHeight = 14;
 
-            for (int i = 0; i < Math.min(searchResults.size(), 10); i++) {
+            for (int i = 0; i < Math.min(searchResults.size(), 5); i++) {
                 Module mod = searchResults.get(i);
                 int resultY = panelY + (i * itemHeight) + 2;
 
