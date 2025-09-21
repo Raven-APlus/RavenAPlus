@@ -2,9 +2,9 @@
   
 # Raven A+
 <p align="center">
-    <img src="https://img.shields.io/github/issues/Project-XD/Raven-APlus?style=flat" alt="issues">
+    <img src="https://img.shields.io/github/issues/Raven-APlus/RavenAPlus?style=flat" alt="issues">
     <img src="https://img.shields.io/badge/license-GPLV3-green" alt="License">
-    <img src="https://tokei.rs/b1/github/Project-XD/Raven-APlus?category=code&style=flat" alt="Lines of code">
+    <img src="https://tokei.rs/b1/github/Raven-APlus/RavenAPlus?category=code&style=flat" alt="Lines of code">
 </p>
 
 [![Github Release Downloads](https://img.shields.io/github/downloads/Raven-APlus/RavenAPlus/total?label=Github%20Release%20Downloads&style=flat-square)](https://github.com/xia-mc/Raven-bS/releases)
