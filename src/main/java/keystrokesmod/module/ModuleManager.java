@@ -119,7 +119,7 @@ public class ModuleManager {
     public static BedDefender bedDefender;
     public static ChestAura chestAura;
     public static AutoRod autoRod;
-//    public static AbilitiesBedWars abilitiesBedWars;
+    //    public static AbilitiesBedWars abilitiesBedWars;
     public static ClientTheme clientTheme;
     public static AutoChest autoChest;
     public static SilenceIRC silenceIRC;
@@ -127,6 +127,7 @@ public class ModuleManager {
     public static AntiFalseFlag antiFalseFlag;
     public static ViaVersionFix viaVersionFix;
     public static AutoGapple autoGapple;
+    public static RemoteShop remoteShop;
 
     public void register() {
 
@@ -310,6 +311,7 @@ public class ModuleManager {
         this.addModule(ghostBlock = new GhostBlock());
         this.addModule(antiFalseFlag = new AntiFalseFlag());
         this.addModule(viaVersionFix = new ViaVersionFix());
+        this.addModule(remoteShop = new RemoteShop());
 
         // enable
         antiBot.enable();

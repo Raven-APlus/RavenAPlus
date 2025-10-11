@@ -1,10 +1,8 @@
 package keystrokesmod.clickgui.components.impl;
 
 import keystrokesmod.Raven;
-import keystrokesmod.clickgui.ClickGui;
 import keystrokesmod.clickgui.components.Component;
 import keystrokesmod.clickgui.components.IComponent;
-import lombok.Setter;
 import keystrokesmod.module.Module;
 import keystrokesmod.module.ModuleManager;
 import keystrokesmod.module.impl.client.Gui;
@@ -28,8 +26,6 @@ public class ModuleComponent implements IComponent {
     public static final int NEW_ENABLED_COLOR = new Color(255, 255, 255, 0).getRGB();
     public static final int NEW_DISABLED_COLOR = new Color(255, 255, 255).getRGB();
     public Module mod;
-        @Setter
-        private boolean visible = true;
     public CategoryComponent categoryComponent;
     public int o;
     public ArrayList<Component> settings;
@@ -107,8 +103,6 @@ public class ModuleComponent implements IComponent {
     }
 
     public void render() {
-        if (!visible) return;
-
         if (hovering) {
             if (ModuleManager.clientTheme.test.isToggled()) {
                 RenderUtils.drawRoundedRectangle(this.categoryComponent.getX(), this.categoryComponent.getY() + o, this.categoryComponent.getX() + this.categoryComponent.gw(), this.categoryComponent.getY() + 16 + this.o, 5, mod.isEnabled() ? Component.NEW_TOGGLE_HOVER_COLOR : Component.NEW_HOVER_COLOR);
@@ -136,16 +130,6 @@ public class ModuleComponent implements IComponent {
             getFont().drawStringWithShadow(this.mod.getPrettyName(), (float) (this.categoryComponent.getX() + (double) this.categoryComponent.gw() / 2 - getFont().width(this.mod.getPrettyName()) / 2), (float) (this.categoryComponent.getY() + this.o + 4), button_rgb);
         }
         GL11.glPopMatrix();
-
-        if (mod.isFavorite()) {
-            String star = "★";
-            int starX = categoryComponent.getX() + 2;
-            int starY = categoryComponent.getY() + o + 4;
-            keystrokesmod.clickgui.ClickGui.getFont().drawString(
-                    star, starX, starY, 0xFFFFD700
-            );
-        }
-
         if (this.po && !this.settings.isEmpty()) {
             for (Component c : this.settings) {
                 Setting setting = c.getSetting();
@@ -162,8 +146,6 @@ public class ModuleComponent implements IComponent {
     }
 
     public int gh() {
-        if (!visible) return 0;
-
         if (!this.po) {
             return 16;
         } else {
@@ -202,30 +184,18 @@ public class ModuleComponent implements IComponent {
     }
 
     public void onClick(int x, int y, int b) {
-        if (this.isHover(x, y)) {
-            if (b == 0 && this.mod.canBeEnabled()) {
-                this.mod.toggle();
-                if (this.mod.moduleCategory() != Module.category.profiles) {
-                    if (Raven.currentProfile != null) {
-                        ((ProfileModule) Raven.currentProfile.getModule()).saved = false;
-                    }
-                }
-            } else if (b == 1) {
-                int moduleRight = this.categoryComponent.getX() + this.categoryComponent.gw();
-                int rightQuarterStart = this.categoryComponent.getX() + (this.categoryComponent.gw() * 3 / 4);
-
-                if (x > rightQuarterStart && x < moduleRight) {
-                    this.mod.toggleFavorite();
-
-                    CategoryComponent favoritesCategory = ClickGui.categories.get(Module.category.favorites);
-                    if (favoritesCategory != null) {
-                        favoritesCategory.reloadModules(false);
-                    }
-                } else {
-                    this.po = !this.po;
-                    this.categoryComponent.render();
+        if (this.isHover(x, y) && b == 0 && this.mod.canBeEnabled()) {
+            this.mod.toggle();
+            if (this.mod.moduleCategory() != Module.category.profiles) {
+                if (Raven.currentProfile != null) {
+                    ((ProfileModule) Raven.currentProfile.getModule()).saved = false;
                 }
             }
+        }
+
+        if (this.isHover(x, y) && b == 1) {
+            this.po = !this.po;
+            this.categoryComponent.render();
         }
 
         for (Component c : this.settings) {
@@ -237,6 +207,7 @@ public class ModuleComponent implements IComponent {
         for (Component c : this.settings) {
             c.mouseReleased(x, y, m);
         }
+
     }
 
     public void keyTyped(char t, int k) {

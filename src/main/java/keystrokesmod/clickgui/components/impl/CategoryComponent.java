@@ -13,7 +13,6 @@ import keystrokesmod.utility.Utils;
 import keystrokesmod.utility.profile.Manager;
 import keystrokesmod.utility.profile.Profile;
 import lombok.Getter;
-import lombok.Setter;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.ScaledResolution;
 import org.lwjgl.opengl.GL11;
@@ -25,10 +24,6 @@ import java.util.Objects;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 public class CategoryComponent {
-    private String nameFilter = ""; // lowercased
-    @Setter
-    private boolean showFavoritesOnly = false;
-
     @Getter
     public List<ModuleComponent> modules = new CopyOnWriteArrayList<>();
     public Module.category categoryName;
@@ -53,18 +48,18 @@ public class CategoryComponent {
     private float big;
 
     // old theme
-    public static final int translucentBackground = new Color(0, 0, 0, 110).getRGB();
-    public static final int background = new Color(0, 0, 0, 255).getRGB();
-    public static final int regularOutline = new Color(81, 99, 149).getRGB();
-    public static final int regularOutline2 = new Color(97, 67, 133).getRGB();
-    public static final int categoryNameColor = new Color(220, 220, 220).getRGB();
-    public static final int categoryCloseColor = new Color(250, 95, 85).getRGB();
-    public static final int categoryOpenColor = new Color(135, 238, 144).getRGB();
+    private static final int translucentBackground = new Color(0, 0, 0, 110).getRGB();
+    private static final int background = new Color(0, 0, 0, 255).getRGB();
+    private static final int regularOutline = new Color(81, 99, 149).getRGB();
+    private static final int regularOutline2 = new Color(97, 67, 133).getRGB();
+    private static final int categoryNameColor = new Color(220, 220, 220).getRGB();
+    private static final int categoryCloseColor = new Color(250, 95, 85).getRGB();
+    private static final int categoryOpenColor = new Color(135, 238, 144).getRGB();
 
     // new theme
-    public static final int TRANSLUCENT_NEW_BACKGROUND = new Color(210, 210, 210, 200).getRGB();
-    public static final int NEW_BACKGROUND = new Color(210, 210, 210, 255).getRGB();
-    public static final int NEW_CATEGORY_NAME_COLOR = new Color(100, 100, 100).getRGB();
+    private static final int TRANSLUCENT_NEW_BACKGROUND = new Color(210, 210, 210, 200).getRGB();
+    private static final int NEW_BACKGROUND = new Color(210, 210, 210, 255).getRGB();
+    private static final int NEW_CATEGORY_NAME_COLOR = new Color(100, 100, 100).getRGB();
 
     public CategoryComponent(Module.category category) {
         this.categoryName = category;
@@ -78,26 +73,16 @@ public class CategoryComponent {
         this.dragging = false;
         int tY = this.buttonHeight + 3;
         this.scale = new ScaledResolution(Minecraft.getMinecraft()).getScaleFactor();
-        this.openCloseAnimation = new Animation(Easing.EASE_OUT_QUART, 600);
+        this.openCloseAnimation = new Animation(Easing.EASE_OUT_QUART, 600); // EASE_OUT_QUART
 
-        if (this.categoryName == Module.category.favorites) {
-            for (Module mod : Raven.getModuleManager().getModules()) {
-                if (mod.isFavorite()) {
-                    ModuleComponent b = new ModuleComponent(mod, this, tY);
-                    this.modules.add(b);
-                    tY += 16;
-                }
+        for (Module mod : Raven.getModuleManager().inCategory(this.categoryName)) {
+            if (mod instanceof SubMode) {
+                continue;
             }
-        } else {
-            for (Module mod : Raven.getModuleManager().inCategory(this.categoryName)) {
-                if (mod instanceof SubMode) {
-                    continue;
-                }
 
-                ModuleComponent b = new ModuleComponent(mod, this, tY);
-                this.modules.add(b);
-                tY += 16;
-            }
+            ModuleComponent b = new ModuleComponent(mod, this, tY);
+            this.modules.add(b);
+            tY += 16;
         }
     }
 
@@ -106,15 +91,7 @@ public class CategoryComponent {
         this.buttonHeight = 13;
         int tY = this.buttonHeight + 3;
 
-        if (this.categoryName == Module.category.favorites) {
-            for (Module mod : Raven.getModuleManager().getModules()) {
-                if (mod.isFavorite()) {
-                    ModuleComponent b = new ModuleComponent(mod, this, tY);
-                    this.modules.add(b);
-                    tY += 16;
-                }
-            }
-        } else if ((this.categoryName == Module.category.profiles && isProfile) || (this.categoryName == Module.category.scripts && !isProfile)) {
+        if ((this.categoryName == Module.category.profiles && isProfile) || (this.categoryName == Module.category.scripts && !isProfile)) {
             ModuleComponent manager = new ModuleComponent(isProfile ? new Manager() : new keystrokesmod.script.Manager(), this, tY);
             this.modules.add(manager);
 
@@ -142,31 +119,6 @@ public class CategoryComponent {
             }
         }
 
-        render();
-    }
-
-    public void setNameFilter(String lowerCaseFilter) {
-        this.nameFilter = (lowerCaseFilter == null) ? "" : lowerCaseFilter;
-    }
-
-    private boolean passesFilters(keystrokesmod.module.Module m) {
-        if (m == null) return false;
-        if (this.showFavoritesOnly && !m.isFavorite()) return false;
-        if (this.nameFilter != null && !this.nameFilter.isEmpty()) {
-            String n = m.getName();
-            if (n == null) return false;
-            if (!n.toLowerCase().contains(this.nameFilter)) return false;
-        }
-        return true;
-    }
-
-    public void applyFilter() {
-        if (modules == null) return;
-
-        for (ModuleComponent moduleComponent : modules) {
-            if (moduleComponent == null || moduleComponent.mod == null) continue;
-            moduleComponent.setVisible(passesFilters(moduleComponent.mod));
-        }
         render();
     }
 
@@ -273,6 +225,7 @@ public class CategoryComponent {
             c = var2.next();
             c.so(o);
         }
+
     }
 
     public int gw() {

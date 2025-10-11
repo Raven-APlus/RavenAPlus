@@ -27,7 +27,7 @@ import java.util.HashMap;
 import java.util.Objects;
 
 public class Watermark extends Module {
-    public static final String VERSION = "1.0";
+    public static final String VERSION = "1.1";
     public static final HashMap<String, ResourceLocation> WATERMARK = new HashMap<>();
 
     public static String customName = "CustomClient";
@@ -88,7 +88,7 @@ public class Watermark extends Module {
                         text = customName;
                         break;
                     case 2:
-                        text = "§r§f§lRaven§9Sense §rFPS:" + Minecraft.getDebugFPS() + " §r";
+                        text = "§r§9§lRaven§bSense §r&7FPS:" + Minecraft.getDebugFPS() + " §r";
                         break;
                 }
 
@@ -125,7 +125,7 @@ public class Watermark extends Module {
                         RenderUtils.drawImage(WATERMARK.get("enders"), posX, posY, 150, 45);
                         break;
                 }
-            break;
+                break;
         }
     }
 }

@@ -1,7 +1,7 @@
 package keystrokesmod.module.impl.other.anticheats.config;
 
 public class AdvancedConfig {
-    
+
     public static boolean blinkCheck = true;
     public static int blinkAlertBuffer = 10;
     public static double blinkMaxDistance = 8;
@@ -11,7 +11,7 @@ public class AdvancedConfig {
     public static int noSlowAInJumpDisableTick = 4;
 
 
-    
+
     public static boolean speedACheck = true;
     public static int speedAAlertBuffer = 30;
     public static int speedAAfterJumpJumpTick = 10;
@@ -21,26 +21,26 @@ public class AdvancedConfig {
     public static double speedAWalkSpeed = 4.317;
 
 
-    
+
     public static boolean speedBCheck = true;
     public static int speedBAlertBuffer = 10;
 
     public static boolean groundSpoofACheck = true;
     public static int groundSpoofAAlertBuffer = 15;
 
-    
+
     public static boolean groundSpoofBCheck = true;
     public static int groundSpoofBAlertBuffer = 15;
 
-    
+
     public static boolean autoBlockACheck = false;
     public static int autoBlockAAlertBuffer = 2;
 
-    
+
     public static boolean speedCCheck = true;
     public static int speedCAlertBuffer = 10;
 
-    
+
     public static boolean motionACheck = true;
     public static int motionAAlertBuffer = 10;
 
@@ -53,14 +53,14 @@ public class AdvancedConfig {
     public static int hitBoxAAlertBuffer = 4;
     public static int hitBoxACheckDelay = 2;
 
-    
+
     public static boolean flyACheck = true;
     public static int flyAAlertBuffer = 30;
-    
+
     public static boolean flyBCheck = true;
     public static int flyBAlertBuffer = 30;
     public static int flyBMinRepeatTicks = 10;
-    
+
     public static boolean strafeACheck = true;
     public static int strafeAAlertBuffer = 20;
     public static double strafeAMaxDiffToFlag = 0.005;
@@ -94,7 +94,7 @@ public class AdvancedConfig {
     public static int noFallAAlertBuffer = 3;
 
     public static boolean aimCCheck = true;
-    public static int aimCAlertBuffer = 10;
+    public static int aimCAlertBuffer = 1;
     public static double aimCMinDeltaYaw = 25;
     public static double aimCMinDeltaPitch = 25;
 

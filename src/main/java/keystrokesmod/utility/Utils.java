@@ -6,6 +6,7 @@ import com.mojang.realmsclient.gui.ChatFormatting;
 import keystrokesmod.Raven;
 import keystrokesmod.event.ClickEvent;
 import keystrokesmod.mixins.impl.client.GuiScreenAccessor;
+import keystrokesmod.mixins.impl.client.KeyBindingAccessor;
 import keystrokesmod.module.impl.other.NameHider;
 import keystrokesmod.module.impl.other.SlotHandler;
 import keystrokesmod.module.impl.render.AntiShuffle;
@@ -392,7 +393,7 @@ public class Utils {
     public static boolean isHypixel() {
         return !mc.isSingleplayer() && mc.getCurrentServerData() != null
                 && mc.getCurrentServerData().serverIP.contains("hypixel.net");
-    }
+    } // I'm not sure how to handle it, such as Proxy IP.
 
     public static boolean isCraftiGames() {
         return !mc.isSingleplayer() && mc.getCurrentServerData() != null
@@ -641,7 +642,15 @@ public class Utils {
     }
 
     public static boolean jumpDown() {
-        return Keyboard.isKeyDown(mc.gameSettings.keyBindJump.getKeyCode());
+        try {
+            return Keyboard.isKeyDown(mc.gameSettings.keyBindJump.getKeyCode());
+        } catch (Throwable e) {
+            try {
+                return mc.gameSettings.keyBindJump.isKeyDown();
+            } catch (Throwable e2) {
+                return false;
+            }
+        }
     }
 
     public static float gd() {
@@ -999,9 +1008,32 @@ public class Utils {
 
     public static boolean isLobby() {
         if (Utils.isHypixel()) {
-            return mc.theWorld.loadedEntityList.parallelStream()
-                    .filter(e -> e instanceof EntityWither)
-                    .anyMatch(Entity::isInvisible);
+            if (mc.theWorld == null) {
+                return true;
+            }
+
+            List<Entity> entities = mc.theWorld.getLoadedEntityList();
+            for (Entity entity : entities) {
+                if (entity != null && entity.getName().equals("§e§lCLICK TO PLAY")) {
+                    return true;
+                }
+            }
+
+            boolean hasNetherStar = false;
+            boolean hasCompass = false;
+            for (ItemStack stack : mc.thePlayer.inventory.mainInventory) {
+                if (stack != null) {
+                    if (stack.getItem() == Items.nether_star) {
+                        hasNetherStar = true;
+                    }
+                    if (stack.getItem() == Items.compass) {
+                        hasCompass = true;
+                    }
+                    if (hasNetherStar && hasCompass) {
+                        return true;
+                    }
+                }
+            }
         }
         return false;
     }
@@ -1052,8 +1084,8 @@ public class Utils {
     public static void inventoryClick(@NotNull GuiScreen s) {
         final ScaledResolution sr = new ScaledResolution(mc);
 
-        int x = Mouse.getX() * s.width / sr.getScaledWidth();
-        int y = s.height - Mouse.getY() * s.height / sr.getScaledHeight() - 1;
+        int x = Mouse.getX() / sr.getScaledWidth() * s.width;
+        int y = s.height - Mouse.getY() / sr.getScaledHeight() * s.height;
 
         ClickEvent event = new ClickEvent();
         MinecraftForge.EVENT_BUS.post(event);

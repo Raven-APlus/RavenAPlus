@@ -5,21 +5,17 @@ import keystrokesmod.clickgui.components.Component;
 import keystrokesmod.clickgui.components.IComponent;
 import keystrokesmod.clickgui.components.impl.BindComponent;
 import keystrokesmod.clickgui.components.impl.CategoryComponent;
-import keystrokesmod.config.FavoritesStorage;
 import keystrokesmod.clickgui.components.impl.ModuleComponent;
 import keystrokesmod.module.Module;
 import keystrokesmod.module.ModuleManager;
 import keystrokesmod.module.impl.client.CommandLine;
 import keystrokesmod.module.impl.client.Gui;
-import keystrokesmod.module.setting.impl.SubMode;
 import keystrokesmod.utility.Commands;
 import keystrokesmod.utility.Timer;
 import keystrokesmod.utility.Utils;
 import keystrokesmod.utility.font.FontManager;
 import keystrokesmod.utility.font.IFont;
-import keystrokesmod.utility.profile.ProfileModule;
 import keystrokesmod.utility.render.GradientBlur;
-import keystrokesmod.utility.render.RenderUtils;
 import net.minecraft.client.gui.*;
 import net.minecraft.client.gui.inventory.GuiInventory;
 import net.minecraftforge.fml.client.config.GuiButtonExt;
@@ -48,13 +44,6 @@ public class ClickGui extends GuiScreen {
     private Runnable delayedAction = null;
 
     private final GradientBlur blur = new GradientBlur(GradientBlur.Type.LR);
-
-    private GuiButtonExt favoritesOnlyBtn;
-    private boolean favoritesOnly = false;
-    private String lastFilter = "";
-    private GuiTextField searchField;
-    private List<Module> searchResults = new ArrayList<>();
-    private boolean showSearchResults = false;
 
     /**
      * to make smooth mouse scrolled
@@ -105,50 +94,9 @@ public class ClickGui extends GuiScreen {
         (this.c = new GuiTextField(1, this.mc.fontRendererObj, 22, this.height - 100, 150, 20)).setMaxStringLength(256);
         this.buttonList.add(this.s = new GuiButtonExt(2, 22, this.height - 70, 150, 20, "Send"));
         this.s.visible = CommandLine.a;
-
-        if (this.searchField == null) {
-            this.searchField = new GuiTextField(3, this.mc.fontRendererObj, 8, 8, 160, 16);
-            this.searchField.setMaxStringLength(64);
-        } else {
-            this.searchField.xPosition = 8;
-            this.searchField.yPosition = 8;
-        }
-        this.searchField.setFocused(false);
-
-        if (ModuleManager.clientTheme.isEnabled() && ModuleManager.clientTheme.clickGui.isToggled()) {
-            this.searchField.setTextColor(0xFFFFFFFF);
-            this.searchField.setDisabledTextColour(0xFFAAAAAA);
-        } else {
-            this.searchField.setTextColor(0xFFE0E0E0);
-            this.searchField.setDisabledTextColour(0xFF707070);
-        }
-
-        int btnW = 82, btnH = 18;
-        int btnX = this.width - (btnW + 8);
-        int btnY = 6;
-        if (this.favoritesOnlyBtn == null) {
-            this.favoritesOnlyBtn = new GuiButtonExt(201, btnX, btnY, btnW, btnH, this.favoritesOnly ? "★ Favorites" : "☆ Favorites");
-            this.buttonList.add(this.favoritesOnlyBtn);
-        } else {
-            this.favoritesOnlyBtn.xPosition = btnX;
-            this.favoritesOnlyBtn.yPosition = btnY;
-            this.favoritesOnlyBtn.width = btnW;
-            this.favoritesOnlyBtn.height = btnH;
-            this.favoritesOnlyBtn.displayString = this.favoritesOnly ? "★ Favorites" : "☆ Favorites";
-            if (!this.buttonList.contains(this.favoritesOnlyBtn)) {
-                this.buttonList.add(this.favoritesOnlyBtn);
-            }
-        }
-
-        try {
-            FavoritesStorage.loadFavorites(gatherAllModules());
-        } catch (Exception ignored) {}
-
-        applyFiltersToCategories();
     }
 
     public void drawScreen(int x, int y, float p) {
-        int r;
         move:
         if (guiYMoveLeft != 0) {
             int step = (int) (guiYMoveLeft * 0.15);
@@ -162,42 +110,13 @@ public class ClickGui extends GuiScreen {
             guiYMoveLeft -= step;
         }
 
-        if (this.searchField != null) {
-            boolean useNewTheme = ModuleManager.clientTheme.isEnabled() && ModuleManager.clientTheme.clickGui.isToggled();
-
-            if (useNewTheme) {
-                drawRect(this.searchField.xPosition - 2, this.searchField.yPosition - 2, 
-                       this.searchField.xPosition + this.searchField.width + 2, 
-                       this.searchField.yPosition + this.searchField.height + 2, 
-                       Gui.translucentBackground.isToggled() ? 
-                       CategoryComponent.TRANSLUCENT_NEW_BACKGROUND : CategoryComponent.NEW_BACKGROUND);
-            }
-
-            this.searchField.drawTextBox();
-
-            if (!this.searchField.isFocused() && (this.searchField.getText() == null || this.searchField.getText().trim().length() == 0)) {
-                String hint = "Search modules...";
-                int hx = this.searchField.xPosition + 4;
-                int hy = this.searchField.yPosition + (this.searchField.height - this.fontRendererObj.FONT_HEIGHT) / 2;
-                this.fontRendererObj.drawString(hint, hx, hy, 
-                        useNewTheme ? CategoryComponent.NEW_CATEGORY_NAME_COLOR : 0x77FFFFFF);
-            }
-        }
-
-        String q = (this.searchField != null && this.searchField.getText() != null) ? this.searchField.getText().trim() : "";
-        if (!q.equals(this.lastFilter)) {
-            this.lastFilter = q;
-            applyFiltersToCategories();
-
-            updateSearchResults(q);
-        }
-
         if (ModuleManager.clientTheme.isEnabled() && ModuleManager.clientTheme.clickGui.isToggled()) {
             blur.update(0, 0, width, height);
             blur.render(0, 0, width, height, 1, 0.1f);
         } else {
             drawRect(0, 0, this.width, this.height, (int) (this.aR.getValueFloat(0.0F, 0.7F, 2) * 255.0F) << 24);
         }
+        int r;
 
         if (!Gui.removeWatermark.isToggled()) {
             int h = this.height / 4;
@@ -233,6 +152,7 @@ public class ClickGui extends GuiScreen {
             GuiInventory.drawEntityOnScreen(this.width + 15 - this.aE.getValueInt(0, 40, 2), this.height - 10, 40, (float) (this.width - 25 - x), (float) (this.height - 50 - y), this.mc.thePlayer);
         }
 
+
         if (CommandLine.a) {
             if (!this.s.visible) {
                 this.s.visible = true;
@@ -262,98 +182,9 @@ public class ClickGui extends GuiScreen {
             CommandLine.b = false;
         }
 
-        if (showSearchResults) {
-            drawSearchResults(x, y);
-        }
-
         if (delayedAction != null)
             delayedAction.run();
         delayedAction = null;
-    }
-
-    private void updateSearchResults(String query) {
-        searchResults.clear();
-        showSearchResults = !query.isEmpty();
-
-        if (showSearchResults) {
-            String lowerQuery = query.toLowerCase();
-            for (Module module : gatherAllModules()) {
-                if (module != null && module.getName() != null &&
-                    !(module instanceof SubMode) &&
-                    module.moduleCategory() != Module.category.profiles && 
-                    module.getName().toLowerCase().contains(lowerQuery)) {
-                    searchResults.add(module);
-                    if (searchResults.size() >= 5) break;
-                }
-            }
-        }
-    }
-
-    private void drawSearchResults(int mouseX, int mouseY) {
-        if (searchResults == null) return;
-
-        int panelX = this.searchField.xPosition;
-        int panelY = this.searchField.yPosition + this.searchField.height + 2;
-        int panelWidth = this.searchField.width;
-        int itemHeight = 14;
-        int maxDisplay = Math.min(5, searchResults.size());
-        int panelHeight = (maxDisplay * itemHeight) + 4;
-        boolean useNewTheme = ModuleManager.clientTheme.isEnabled() && ModuleManager.clientTheme.clickGui.isToggled();
-
-        if (useNewTheme) {
-            RenderUtils.drawRoundedRectangle(panelX - 2, panelY, panelX + panelWidth + 2, panelY + panelHeight, 5,
-                    Gui.translucentBackground.isToggled() ? CategoryComponent.TRANSLUCENT_NEW_BACKGROUND : CategoryComponent.NEW_BACKGROUND);
-        } else {
-            RenderUtils.drawRoundedGradientOutlinedRectangle(
-                    panelX - 2, panelY, panelX + panelWidth + 2, panelY + panelHeight, 9,
-                    Gui.translucentBackground.isToggled() ? CategoryComponent.translucentBackground : CategoryComponent.background,
-                    Gui.rainBowOutlines.isToggled() ? RenderUtils.setAlpha(Utils.getChroma(2, 0), 0.5f) : CategoryComponent.regularOutline,
-                    Gui.rainBowOutlines.isToggled() ? RenderUtils.setAlpha(Utils.getChroma(2, 700), 0.5f) : CategoryComponent.regularOutline2
-            );
-        }
-
-        if (searchResults.isEmpty()) {
-            getFont().drawString("No results found", panelX + 4, panelY + 6, 
-                    useNewTheme ? CategoryComponent.NEW_CATEGORY_NAME_COLOR : CategoryComponent.categoryNameColor);
-            return;
-        }
-
-        for (int i = 0; i < maxDisplay; i++) {
-            Module mod = searchResults.get(i);
-            if (mod == null) continue;
-
-            int resultY = panelY + (i * itemHeight) + 2;
-            boolean hovering = mouseX >= panelX && mouseX <= panelX + panelWidth &&
-                    mouseY >= resultY && mouseY <= resultY + itemHeight;
-
-            if (hovering) {
-                if (useNewTheme) {
-                    RenderUtils.drawRoundedRectangle(panelX + 1, resultY, panelX + panelWidth - 1, resultY + itemHeight, 3,
-                            mod.isEnabled() ? Component.NEW_TOGGLE_HOVER_COLOR : Component.NEW_HOVER_COLOR);
-                } else {
-                    drawRect(panelX + 1, resultY, panelX + panelWidth - 1, resultY + itemHeight, 0xFF444444);
-                }
-            } else if (useNewTheme && mod.isEnabled()) {
-                RenderUtils.drawRoundedRectangle(panelX + 1, resultY, panelX + panelWidth - 1, resultY + itemHeight, 3,
-                        Component.NEW_TOGGLE_DEFAULT_COLOR);
-            }
-
-            String name = mod.getName() != null ? mod.getName() : "Unknown";
-            int textColor;
-            if (useNewTheme) {
-                // Use white text color for both enabled and disabled modules in search results for better readability
-                textColor = mod.isEnabled() ? 0xFFFFFFFF : ModuleComponent.NEW_DISABLED_COLOR;
-            } else {
-                textColor = mod.isEnabled() ? 0xFF00FF00 : CategoryComponent.categoryNameColor;
-            }
-
-            getFont().drawString(name, panelX + 4, resultY + 3, textColor);
-
-            if (mod.isFavorite()) {
-                String star = "★";
-                getFont().drawString(star, panelX + panelWidth - 12, resultY + 3, 0xFFFFD700);
-            }
-        }
     }
 
     @Override
@@ -375,60 +206,9 @@ public class ClickGui extends GuiScreen {
         }
     }
 
-    private boolean isMouseOver(GuiTextField field, int mouseX, int mouseY) {
-        return mouseX >= field.xPosition &&
-                mouseX <= field.xPosition + field.width &&
-                mouseY >= field.yPosition &&
-                mouseY <= field.yPosition + field.height;
-    }
+
 
     public void mouseClicked(int x, int y, int m) throws IOException {
-        if (this.searchField != null) {
-            boolean wasOverSearchField = isMouseOver(this.searchField, x, y);
-            this.searchField.mouseClicked(x, y, m);
-
-            if (wasOverSearchField) {
-                this.searchField.setFocused(true);
-            } else if (m == 0) {
-                this.searchField.setFocused(false);
-            }
-        }
-
-        if (showSearchResults && !searchResults.isEmpty()) {
-            int panelX = this.searchField.xPosition;
-            int panelY = this.searchField.yPosition + this.searchField.height + 2;
-            int panelWidth = this.searchField.width;
-            int itemHeight = 14;
-
-            for (int i = 0; i < Math.min(searchResults.size(), 5); i++) {
-                Module mod = searchResults.get(i);
-                int resultY = panelY + (i * itemHeight) + 2;
-
-                if (x >= panelX && x <= panelX + panelWidth &&
-                        y >= resultY && y <= resultY + itemHeight) {
-                    if (m == 0) {
-                        if (mod.canBeEnabled()) {
-                            mod.toggle();
-                            if (Raven.currentProfile != null && mod.moduleCategory() != Module.category.profiles) {
-                                ((ProfileModule) Raven.currentProfile.getModule()).saved = false;
-                            }
-                        }
-                    } else if (m == 1) {
-                        if (x > panelX + panelWidth - 15) {
-                            mod.toggleFavorite();
-                            CategoryComponent favoritesCategory = ClickGui.categories.get(Module.category.favorites);
-                            if (favoritesCategory != null) {
-                                favoritesCategory.reloadModules(false);
-                            }
-                        } else {
-                            highlightModule(mod);
-                        }
-                    }
-                    return;
-                }
-            }
-        }
-
         Iterator<CategoryComponent> var4 = clickHistory.stream()
                 .map(category -> categories.get(category))
                 .iterator();
@@ -473,19 +253,6 @@ public class ClickGui extends GuiScreen {
         }
     }
 
-    private void highlightModule(Module module) {
-        for (CategoryComponent category : categories.values()) {
-            if (category.categoryName != Module.category.favorites) {
-                for (ModuleComponent comp : category.getModules()) {
-                    if (comp.mod == module) {
-                        category.fv(true);
-                        return;
-                    }
-                }
-            }
-        }
-    }
-
     public void mouseReleased(int x, int y, int s) {
         if (s == 0) {
             for (CategoryComponent category : categories.values()) {
@@ -501,14 +268,6 @@ public class ClickGui extends GuiScreen {
 
     @Override
     public void keyTyped(char t, int k) {
-        if (this.searchField != null && this.searchField.isFocused()) {
-            if (this.searchField.textboxKeyTyped(t, k)) {
-                this.lastFilter = this.searchField.getText() == null ? "" : this.searchField.getText().trim();
-                applyFiltersToCategories();
-                return;
-            }
-        }
-
         if (k == Keyboard.KEY_ESCAPE && !binding()) {
             this.mc.displayGuiScreen(null);
         } else {
@@ -532,13 +291,6 @@ public class ClickGui extends GuiScreen {
     }
 
     public void actionPerformed(GuiButton b) {
-        if (b == this.favoritesOnlyBtn) {
-            this.favoritesOnly = !this.favoritesOnly;
-            this.favoritesOnlyBtn.displayString = this.favoritesOnly ? "★ Favorites" : "☆ Favorites";
-            applyFiltersToCategories();
-            return;
-        }
-
         if (b == this.s) {
             Commands.rCMD(this.c.getText());
             this.c.setText("");
@@ -546,10 +298,6 @@ public class ClickGui extends GuiScreen {
     }
 
     public void onGuiClosed() {
-        try {
-            FavoritesStorage.saveFavorites(gatherAllModules());
-        } catch (Exception ignored) {}
-
         this.aL = null;
         if (this.sf != null) {
             this.sf.cancel(true);
@@ -593,27 +341,6 @@ public class ClickGui extends GuiScreen {
                 yOffSet += 120;
             }
         }
-    }
 
-    private List<Module> gatherAllModules() {
-        List<Module> all = new ArrayList<>();
-        if (Raven.moduleManager != null) {
-            all.addAll(Raven.moduleManager.getModules());
-        }
-        return all;
-    }
-
-    private void applyFiltersToCategories() {
-        if (categories == null) return;
-        String q = this.lastFilter == null ? "" : this.lastFilter.toLowerCase();
-        for (CategoryComponent comp : categories.values()) {
-            if (comp != null) {
-                comp.setNameFilter(q);
-                comp.setShowFavoritesOnly(this.favoritesOnly);
-                comp.applyFilter();
-            }
-        }
-
-        updateSearchResults(q);
     }
 }

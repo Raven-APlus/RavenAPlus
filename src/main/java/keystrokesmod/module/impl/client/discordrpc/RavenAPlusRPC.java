@@ -21,7 +21,7 @@ public class RavenAPlusRPC extends SubMode<DiscordRpc> {
             DiscordRPC.discordInitialize(clientId, new DiscordEventHandlers.Builder().setReadyEventHandler(user -> {
                 DiscordRichPresence.Builder presence = new DiscordRichPresence.Builder("");
                 presence.setDetails("Cheating using Raven A+");
-                presence.setBigImage("logo", "https://github.com/Project-XD/Raven-APlus").setStartTimestamps(System.currentTimeMillis());
+                presence.setBigImage("logo", "https://github.com/Raven-APlus/RavenAPlus").setStartTimestamps(System.currentTimeMillis());
                 DiscordRPC.discordUpdatePresence(presence.build());
             }).build(), true);
             new Thread(() -> {
