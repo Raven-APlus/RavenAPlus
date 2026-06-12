@@ -63,6 +63,7 @@ public class KillAura extends IAutoClicker {
     private final SliderSetting fov;
     private final SliderSetting swingRange;
     private final SliderSetting blockRange;
+    private final ButtonSetting strictBlockRange;
     private final SliderSetting preAimRange;
     private final ModeSetting rotationMode;
     private final ModeSetting moveFixMode;
@@ -128,7 +129,6 @@ public class KillAura extends IAutoClicker {
     private boolean swing;
     @Getter
     private boolean attack;
-    private final BlockController blockController = new BlockController();
     private boolean swapped;
     private float[] rotations = new float[]{0, 0};
     private EntityLivingBase lastAttackTarget = null;
@@ -157,6 +157,7 @@ public class KillAura extends IAutoClicker {
         this.registerSetting(attackRange = new SliderSetting("Attack range", 3.0, 3.0, 6.0, 0.1));
         this.registerSetting(swingRange = new SliderSetting("Swing range", 3.0, 3.0, 8.0, 0.1));
         this.registerSetting(blockRange = new SliderSetting("Block range", 6.0, 3.0, 12.0, 0.1));
+        this.registerSetting(strictBlockRange = new ButtonSetting("Strict block range", false));
         this.registerSetting(preAimRange = new SliderSetting("PreAim range", 6.0, 3.0, 12.0, 0.1));
         this.registerSetting(fov = new SliderSetting("FOV", 360.0, 30.0, 360.0, 4.0));
         this.registerSetting(new DescriptionSetting("Rotation"));
@@ -242,12 +243,12 @@ public class KillAura extends IAutoClicker {
     public void onDisable() {
         clickMode.disable();
         resetVariables();
-        blockController.reset();
+        Raven.blockController.reset();
         if (Utils.nullCheck()) mc.thePlayer.stopUsingItem();
     }
 
     public boolean isClientBlocking() {
-        return blockController.isClientBlocking() || block.get();
+        return Raven.blockController.isClientBlocking() || block.get();
     }
 
     private float[] getRotations() {
@@ -257,7 +258,7 @@ public class KillAura extends IAutoClicker {
                 new Pair<>((float) noiseHorizontal.getInput(), (float) noiseVertical.getInput()),
                 noiseAimSpeed.getInput(), (long) noiseDelay.getInput());
         aimSimulator.setDelay(delayAim.isToggled(), (int) delayAimAmount.getInput());
-        if (scale.isToggled() && Math.random() > scaleChance.getInput()) {
+        if (scale.isToggled() && Math.random() > scaleChance.getInput() / 100.0) {
             aimSimulator.setScale(scale.isToggled(), scaleHorizontal.getInput(), scaleVertical.getInput());
         } else {
             aimSimulator.setScale(scale.isToggled(), 1, 1);
@@ -357,7 +358,7 @@ public class KillAura extends IAutoClicker {
         }
         int input = (int) autoBlockMode.getInput();
         if (block.get() && (input == 3 || input == 4 || input == 5 || input == 8 || input == 9) && Utils.holdingSword()) {
-            blockController.syncClientVisual(true);
+            Raven.blockController.syncClientVisual(true);
             if (ModuleManager.bedAura.stopAutoblock) {
                 resetBlinkState(false);
                 ModuleManager.bedAura.stopAutoblock = false;
@@ -375,7 +376,7 @@ public class KillAura extends IAutoClicker {
                         }
                         lag = false;
                     } else {
-                        if (!blockController.prepareForAttack()) {
+                        if (!Raven.blockController.prepareForAttack()) {
                             lag = true;
                             break;
                         }
@@ -383,7 +384,7 @@ public class KillAura extends IAutoClicker {
                         Raven.badPacketsHandler.playerSlot = mc.thePlayer.inventory.currentItem;
                         swapped = false;
                         attackAndInteract(target, true);
-                        blockController.startBlockPacket();
+                        Raven.blockController.startBlockPacket();
                         releasePackets();
                         lag = true;
                     }
@@ -392,21 +393,21 @@ public class KillAura extends IAutoClicker {
                 case 5:
                     if (lag) {
                         blinking = true;
-                        blockController.stopBlock();
+                        Raven.blockController.stopBlock();
                         lag = false;
                     } else {
-                        if (!blockController.prepareForAttack()) {
+                        if (!Raven.blockController.prepareForAttack()) {
                             lag = true;
                             break;
                         }
                         attackAndInteract(target, autoBlockMode.getInput() == 5);
                         releasePackets();
-                        blockController.startBlockPacket();
+                        Raven.blockController.startBlockPacket();
                         lag = true;
                     }
                     break;
                 case 8:
-                    if (!blockController.prepareForAttack()) {
+                    if (!Raven.blockController.prepareForAttack()) {
                         break;
                     }
                     lag = false;
@@ -415,16 +416,16 @@ public class KillAura extends IAutoClicker {
                     if (SlotHandler.getHeldItem() != null && SlotHandler.getHeldItem().getItem() instanceof ItemSword) {
                         PacketUtils.sendPacket(new C0FPacketConfirmTransaction(Utils.randomizeInt(0, 2147483647), (short) Utils.randomizeInt(0, -32767), true));
                         PacketUtils.sendPacket(new C0APacketAnimation());
-                        blockController.startBlockPacket();
+                        Raven.blockController.startBlockPacket();
                     }
                     break;
                 case 9:
                     if (lag) {
                         blinking = true;
-                        blockController.stopBlock();
+                        Raven.blockController.stopBlock();
                         lag = false;
                     } else {
-                        if (!blockController.prepareForAttack()) {
+                        if (!Raven.blockController.prepareForAttack()) {
                             lag = true;
                             break;
                         }
@@ -433,7 +434,7 @@ public class KillAura extends IAutoClicker {
                         }
                         releasePackets();
                         blinking = false;
-                        blockController.startBlockPacket();
+                        Raven.blockController.startBlockPacket();
                         lag = true;
                     }
                     break;
@@ -447,7 +448,7 @@ public class KillAura extends IAutoClicker {
             return;
         }
         if (attack) {
-            if (!blockController.prepareForAttack()) {
+            if (!Raven.blockController.prepareForAttack()) {
                 block();
                 return;
             }
@@ -492,8 +493,8 @@ public class KillAura extends IAutoClicker {
 
     @SubscribeEvent
     public void onPostMotion(PostMotionEvent e) {
-        if (autoBlockMode.getInput() == 2 && block.get() && Utils.holdingSword() && blockController.canSendBlock()) {
-            blockController.startBlockPacket();
+        if (autoBlockMode.getInput() == 2 && block.get() && Utils.holdingSword() && Raven.blockController.canSendBlock()) {
+            Raven.blockController.startBlockPacket();
         }
     }
 
@@ -503,7 +504,7 @@ public class KillAura extends IAutoClicker {
             return;
         }
         Packet<?> packet = e.getPacket();
-        if (packet.getClass().getSimpleName().startsWith("S")) {
+        if (packet.getClass().getName().contains("network.play.server")) {
             return;
         }
         blinkedPackets.add(e.getPacket());
@@ -515,7 +516,7 @@ public class KillAura extends IAutoClicker {
         if (gameNoAction() || !fixSlotReset.isToggled()) {
             return;
         }
-        if (Utils.holdingSword() && (mc.thePlayer.isBlocking() || block.get() || blockController.isClientBlocking())) {
+        if (Utils.holdingSword() && (mc.thePlayer.isBlocking() || block.get() || Raven.blockController.isClientBlocking())) {
             if (e.getPacket() instanceof S2FPacketSetSlot) {
                 if (mc.thePlayer.inventory.currentItem == ((S2FPacketSetSlot) e.getPacket()).func_149173_d() - 36 && mc.currentScreen == null) {
                     if (((S2FPacketSetSlot) e.getPacket()).func_149174_e() == null || (((S2FPacketSetSlot) e.getPacket()).func_149174_e().getItem() != mc.thePlayer.getHeldItem().getItem())) {
@@ -566,6 +567,7 @@ public class KillAura extends IAutoClicker {
             case 2:
                 MovingObjectPosition hitResult = RotationUtils.rayCastStrict(RotationHandler.getRotationYaw(), RotationHandler.getRotationPitch(), attackRange.getInput());
                 noAim = hitResult.typeOfHit != MovingObjectPosition.MovingObjectType.ENTITY || hitResult.entityHit != target;
+                break;
             case 1:
                 if (noAim) break;
                 noAim = RotationUtils.rayCast(
@@ -590,13 +592,13 @@ public class KillAura extends IAutoClicker {
         attack = false;
         block();
         resetBlinkState(true);
-        blockController.reset();
+        Raven.blockController.reset();
         swapped = false;
         blockingTime = 0;
     }
 
     private void block() {
-        if (!block.get() && !blockController.isClientBlocking() && !blockController.isServerBlocking()) {
+        if (!block.get() && !Raven.blockController.isClientBlocking() && !Raven.blockController.isServerBlocking()) {
             return;
         }
         if (manualBlock.isToggled() && !rmbDown) {
@@ -610,28 +612,28 @@ public class KillAura extends IAutoClicker {
         switch ((int) autoBlockMode.getInput()) {
             case 0: // manual
                 if (!shouldBlock) {
-                    blockController.stopBlock();
+                    Raven.blockController.stopBlock();
                 }
                 break;
             case 1: // vanilla
                 if (shouldBlock && !attack) {
-                    blockController.startBlockPacket();
+                    Raven.blockController.startBlockPacket();
                 } else if (!shouldBlock) {
-                    blockController.stopBlock();
+                    Raven.blockController.stopBlock();
                 }
                 break;
             case 8: // quickmacro
                 if (shouldBlock) {
-                    blockController.syncClientVisual(true);
+                    Raven.blockController.syncClientVisual(true);
                 } else {
-                    blockController.stopBlock();
+                    Raven.blockController.stopBlock();
                 }
                 break;
             case 2: // post
                 if (shouldBlock) {
-                    blockController.syncClientVisual(true);
+                    Raven.blockController.syncClientVisual(true);
                 } else {
-                    blockController.stopBlock();
+                    Raven.blockController.stopBlock();
                 }
                 break;
             case 3: // swap
@@ -639,16 +641,16 @@ public class KillAura extends IAutoClicker {
             case 5: // interact b
             case 9: // hypixel
                 if (shouldBlock) {
-                    blockController.syncClientVisual(true);
+                    Raven.blockController.syncClientVisual(true);
                 } else {
-                    blockController.stopBlock();
+                    Raven.blockController.stopBlock();
                 }
                 break;
             case 6: // fake — client visual only, no server mitigation
                 if (shouldBlock) {
-                    blockController.syncClientVisual(true);
+                    Raven.blockController.syncClientVisual(true);
                 } else {
-                    blockController.stopClientBlock();
+                    Raven.blockController.stopClientBlock();
                 }
                 break;
             case 7: // partial
@@ -658,12 +660,12 @@ public class KillAura extends IAutoClicker {
                     KeyBinding.setKeyBindState(key, true);
                     KeyBinding.onTick(key);
                     Utils.setMouseButtonState(1, true);
-                    blockController.syncClientVisual(true);
+                    Raven.blockController.syncClientVisual(true);
                 } else {
                     KeyBinding.setKeyBindState(mc.gameSettings.keyBindUseItem.getKeyCode(), false);
                     Reflection.setButton(1, false);
                     Utils.setMouseButtonState(1, false);
-                    blockController.stopBlock();
+                    Raven.blockController.stopBlock();
                 }
                 break;
         }
@@ -729,8 +731,8 @@ public class KillAura extends IAutoClicker {
                 .filter(entity -> fov.getInput() == 360 || Utils.inFov((float) fov.getInput(), entity))
                 .map(entity -> new Pair<>(entity, eyePos.distanceTo(RotationUtils.getNearestPoint(entity.getEntityBoundingBox(), eyePos))))
                 .forEach(pair -> {
-                    // need a more accurate distance check as this can ghost on hypixel
-                    if (pair.second() <= blockRange.getInput() && autoBlockMode.getInput() > 0 && canBlock(pair.first())) {
+                    double effectiveBlockRange = strictBlockRange.isToggled() ? Math.min(blockRange.getInput(), 3.0) : blockRange.getInput();
+                    if (pair.second() <= effectiveBlockRange && autoBlockMode.getInput() > 0 && canBlock(pair.first())) {
                         KeyBinding.setKeyBindState(mc.gameSettings.keyBindUseItem.getKeyCode(), false);
                         wantBlock.set(true);
                     }
@@ -799,7 +801,7 @@ public class KillAura extends IAutoClicker {
         } else if (isMining() && disableWhileMining.isToggled()) {
             return true;
         } else if (fixNoSlowFlag.isToggled() && blockingTime > (int) postDelay.getInput()) {
-            blockController.stopBlock();
+            Raven.blockController.stopBlock();
             blockingTime = 0;
         } else if (ModuleManager.scaffold.isEnabled()) {
             return true;
@@ -857,9 +859,9 @@ public class KillAura extends IAutoClicker {
             swapped = false;
         }
         if (lag && unblock) {
-            blockController.stopBlock();
+            Raven.blockController.stopBlock();
         } else if (unblock) {
-            blockController.stopClientBlock();
+            Raven.blockController.stopClientBlock();
         }
         lag = false;
     }

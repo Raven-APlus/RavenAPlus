@@ -23,6 +23,7 @@ public class GrimACSpeed extends SubMode<Speed> {
 
     public GrimACSpeed(String name, @NotNull Speed parent) {
         super(name, parent);
+        this.registerSetting(new DescriptionSetting("Legacy collision boost — patched on modern Grim."));
         this.registerSetting(new DescriptionSetting("Only works on 1.9+"));
         this.registerSetting(amount = new SliderSetting("Amount", 3, 0, 10, 1));
         this.registerSetting(autoJump = new ButtonSetting("Auto jump", true));

@@ -15,6 +15,7 @@ public class Criticals extends Module {
                 .add(new JumpCriticals("Jump", this))
                 .add(new LagCriticals("Lag", this))
                 .add(new AirStuckCriticals("AirStuck", this))
+                .add(new PacketCriticals("Packet", this))
         );
     }
 

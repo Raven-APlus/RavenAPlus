@@ -23,7 +23,7 @@ import org.lwjgl.input.Keyboard;
 import static keystrokesmod.module.ModuleManager.*;
 
 public class InvMove extends Module {
-    public static final String[] MODES = {"Normal", "Blink", "LegitInv", "Hypixel"};
+    public static final String[] MODES = {"Normal", "Blink", "LegitInv", "Safe", "GrimAC", "Hypixel"};
     private final ModeSetting mode;
     private final ButtonSetting container;
     private final ButtonSetting inventory;
@@ -80,7 +80,7 @@ public class InvMove extends Module {
                     break;
                 case 3:
                     MoveUtil.stop();
-                    break;
+                    return;
             }
 
             doInvMove();
@@ -173,9 +173,10 @@ public class InvMove extends Module {
 
     private boolean nameCheck() {
         if (!chestNameCheck.isToggled()) return true;
+        // Inventory, crafting, and other non-chest GUIs should always pass.
         if (!(mc.thePlayer.openContainer instanceof ContainerChest)) return true;
-
-        return ((ContainerChest) mc.thePlayer.openContainer).getLowerChestInventory().getName().equals("Chest");
+        // Accept any chest container (localized / renamed chests), not only literal "Chest".
+        return true;
     }
 
     private boolean targetNearbyCheck() {

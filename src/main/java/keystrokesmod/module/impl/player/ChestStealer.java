@@ -24,7 +24,7 @@ public class ChestStealer extends Module {
     private static final ButtonSetting silent = new ButtonSetting("Silent", false);
     private static final ButtonSetting notMoving = new ButtonSetting("Not Moving", false);
     public static ButtonSetting allowMouseControl = new ButtonSetting("Allow mouse control", false);
-    private static State state = State.NONE;
+    private State state = State.NONE;
     private final SliderSetting minStartDelay = new SliderSetting("Min start delay", 100, 0, 500, 10, "ms");
     private final SliderSetting maxStartDelay = new SliderSetting("Max start delay", 200, 0, 500, 10, "ms");
     private final SliderSetting minStealDelay = new SliderSetting("Min steal delay", 100, 0, 500, 10, "ms");
@@ -102,7 +102,7 @@ public class ChestStealer extends Module {
 
         switch (state) {
             case STEAL:
-                while (nextStealTime <= System.currentTimeMillis()) {
+                if (nextStealTime <= System.currentTimeMillis()) {
                     if (!ContainerUtils.isChest(customChest.isToggled())
                             || (autoCloseIfInvFull.isToggled() && ContainerUtils.inventoryFull())) {
                         close();
@@ -119,7 +119,7 @@ public class ChestStealer extends Module {
                     final int slot = items.get(0);
 
                     stole.add(slot);
-                    ContainerUtils.steal(containerChest, slot);  // in 1.8, the window click is only on tick.
+                    ContainerUtils.steal(containerChest, slot);
                     nextStealTime = System.currentTimeMillis() + Utils.randomizeInt(minStealDelay.getInput(), maxStealDelay.getInput());
                 }
                 break;

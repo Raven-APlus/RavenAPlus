@@ -1,5 +1,6 @@
 package keystrokesmod.module.impl.movement.noslow;
 
+import keystrokesmod.Raven;
 import keystrokesmod.event.PreMotionEvent;
 import keystrokesmod.event.SendPacketEvent;
 import keystrokesmod.module.impl.movement.NoSlow;
@@ -58,13 +59,15 @@ public class HypixelNoSlow extends INoSlow {
                     && item != null && item.getItem() instanceof ItemSword) {
                 if (cycle) {
                     blink.enable();
-                    PacketUtils.sendPacket(new C07PacketPlayerDigging(
-                            C07PacketPlayerDigging.Action.RELEASE_USE_ITEM, BlockPos.ORIGIN, DOWN
-                    ));
+                    if (Raven.blockController.isServerBlocking()) {
+                        Raven.blockController.stopBlock();
+                    }
                     cycle = false;
                 } else {
                     blink.disable();
-                    PacketUtils.sendPacket(new C08PacketPlayerBlockPlacement(SlotHandler.getHeldItem()));
+                    if (Raven.blockController.canSendBlock() && !Raven.blockController.isServerBlocking()) {
+                        Raven.blockController.startBlockPacket();
+                    }
                     cycle = true;
                 }
             } else {

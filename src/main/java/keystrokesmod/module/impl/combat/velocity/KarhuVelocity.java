@@ -44,14 +44,22 @@ public class KarhuVelocity extends SubMode<Velocity> {
 
         if (mc.thePlayer.motionX > 0) {
             needToBoundingPos.add(pos.offset(EnumFacing.EAST));
+            needToBoundingPos.add(pos.offset(EnumFacing.NORTH).offset(EnumFacing.EAST));
+            needToBoundingPos.add(pos.offset(EnumFacing.SOUTH).offset(EnumFacing.EAST));
         } else if (mc.thePlayer.motionX < 0) {
             needToBoundingPos.add(pos.offset(EnumFacing.WEST));
+            needToBoundingPos.add(pos.offset(EnumFacing.NORTH).offset(EnumFacing.WEST));
+            needToBoundingPos.add(pos.offset(EnumFacing.SOUTH).offset(EnumFacing.WEST));
         }
 
         if (mc.thePlayer.motionZ > 0) {
             needToBoundingPos.add(pos.offset(EnumFacing.SOUTH));
+            needToBoundingPos.add(pos.offset(EnumFacing.EAST).offset(EnumFacing.SOUTH));
+            needToBoundingPos.add(pos.offset(EnumFacing.WEST).offset(EnumFacing.SOUTH));
         } else if (mc.thePlayer.motionZ < 0) {
             needToBoundingPos.add(pos.offset(EnumFacing.NORTH));
+            needToBoundingPos.add(pos.offset(EnumFacing.EAST).offset(EnumFacing.NORTH));
+            needToBoundingPos.add(pos.offset(EnumFacing.WEST).offset(EnumFacing.NORTH));
         }
     }
 

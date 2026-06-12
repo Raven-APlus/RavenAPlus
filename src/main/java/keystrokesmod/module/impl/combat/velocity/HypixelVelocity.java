@@ -68,6 +68,7 @@ public class HypixelVelocity extends SubMode<Velocity> {
 
         mc.thePlayer.motionX = choose(mc.thePlayer.motionX, motionX);
         mc.thePlayer.motionZ = choose(mc.thePlayer.motionZ, motionZ);
+        mc.thePlayer.setSprinting(false);
     }
 
     private double choose(double curMotion, double packetMotion) {

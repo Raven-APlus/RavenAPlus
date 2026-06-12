@@ -280,7 +280,8 @@ public class BedAura extends Module {
         if (positions == null) {
             return null;
         }
-        double maxRangeSquared = range.getInput() * range.getInput();
+        double rangeCapSquared = range.getInput() * range.getInput();
+        double bestDistance = rangeCapSquared;
         double bestEfficiency = 0;
         BlockPos closestBlock = null;
         for (BlockPos pos : positions) {
@@ -303,8 +304,8 @@ public class BedAura extends Module {
                     double efficiency = getEfficiency(offset);
                     double distance = mc.thePlayer.getDistanceSqToCenter(offset);
 
-                    if (betterBlock(distance, efficiency, maxRangeSquared, bestEfficiency)) {
-                        maxRangeSquared = distance;
+                    if (betterBlock(distance, efficiency, bestDistance, bestEfficiency)) {
+                        bestDistance = distance;
                         bestEfficiency = efficiency;
                         closestBlock = offset;
                     }
@@ -317,8 +318,8 @@ public class BedAura extends Module {
                 double efficiency = getEfficiency(pos);
                 double distance = mc.thePlayer.getDistanceSqToCenter(pos);
 
-                if (betterBlock(distance, efficiency, maxRangeSquared, bestEfficiency)) {
-                    maxRangeSquared = distance;
+                if (betterBlock(distance, efficiency, bestDistance, bestEfficiency)) {
+                    bestDistance = distance;
                     bestEfficiency = efficiency;
                     closestBlock = pos;
                 }
@@ -340,8 +341,8 @@ public class BedAura extends Module {
         return efficiency;
     }
 
-    private boolean betterBlock(double distance, double efficiency, double maxRangeSquared, double bestEfficiency) {
-        return (distance < maxRangeSquared || efficiency > bestEfficiency);
+    private boolean betterBlock(double distance, double efficiency, double bestDistance, double bestEfficiency) {
+        return distance < bestDistance || efficiency > bestEfficiency;
     }
 
     private void reset(boolean resetSlot) {

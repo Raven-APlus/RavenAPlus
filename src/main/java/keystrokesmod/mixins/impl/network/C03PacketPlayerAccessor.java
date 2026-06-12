@@ -11,6 +11,9 @@ public interface C03PacketPlayerAccessor {
     @Accessor("pitch")
     void setPitch(float pitch);
 
+    @Accessor("onGround")
+    void setOnGround(boolean onGround);
+
     @Accessor("rotating")
     boolean isRotating();
 }

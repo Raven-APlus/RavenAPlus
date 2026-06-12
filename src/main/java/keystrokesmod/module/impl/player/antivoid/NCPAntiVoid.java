@@ -25,7 +25,10 @@ public class NCPAntiVoid extends SubMode<AntiVoid> {
     @Override
     public void onUpdate() throws Throwable {
         if (mc.thePlayer.fallDistance > distance.getInput() && Utils.overVoid() && !mc.thePlayer.onGround) {
-            mc.thePlayer.setPosition(lastOnGroundPos.x, lastOnGroundPos.y, lastOnGroundPos.z);
+            mc.thePlayer.motionX = -mc.thePlayer.motionX * 0.35;
+            mc.thePlayer.motionZ = -mc.thePlayer.motionZ * 0.35;
+            mc.thePlayer.motionY = Math.max(mc.thePlayer.motionY, 0.08);
+            mc.thePlayer.fallDistance = 0;
         } else if (mc.thePlayer.onGround) {
             lastOnGroundPos = new Vec3(mc.thePlayer);
         }

@@ -49,6 +49,7 @@ public class InvManager extends Module {
     private final SliderSetting throwableSlot = new SliderSetting("Throwable slot", 6, 0, 9, 1, sort::isToggled);
     private final SliderSetting rodSlot = new SliderSetting("Rod slot", 7, 0, 9, 1, sort::isToggled);
     private final ButtonSetting shuffle = new ButtonSetting("Shuffle", false, () -> armor.isToggled() || clean.isToggled() || sort.isToggled());
+    private final ButtonSetting targetNearbyCheck = new ButtonSetting("Target nearby check", true);
 
     private State state = State.NONE;
     private long nextTaskTime;
@@ -61,7 +62,7 @@ public class InvManager extends Module {
                 armor, minArmorDelay, maxArmorDelay,
                 clean, minCleanDelay, maxCleanDelay,
                 sort, minSortDelay, maxSortDelay, swordSlot, blockSlot, enderPearlSlot, bowSlot, foodSlot, throwableSlot, rodSlot,
-                shuffle
+                shuffle, targetNearbyCheck
         );
     }
 
@@ -84,15 +85,21 @@ public class InvManager extends Module {
 
     @Override
     public void onUpdate() {
+        if (targetNearbyCheck.isToggled() && Utils.isTargetNearby()) {
+            state = State.NONE;
+            return;
+        }
+
+        final boolean movingBlocked = notWhileMoving.isToggled() && MoveUtil.isMoving();
         switch ((int) mode.getInput()) {
             case 0:
-                invOpen = !(notWhileMoving.isToggled() && MoveUtil.isMoving()) && !(mc.currentScreen instanceof GuiChest);
+                invOpen = !movingBlocked && !(mc.currentScreen instanceof GuiChest);
                 break;
             case 1:
-                invOpen = mc.currentScreen instanceof GuiInventory;
+                invOpen = mc.currentScreen instanceof GuiInventory && !movingBlocked;
                 break;
             case 2:
-                invOpen = !(mc.currentScreen instanceof GuiChest);
+                invOpen = !(mc.currentScreen instanceof GuiChest) && !movingBlocked;
                 break;
         }
 

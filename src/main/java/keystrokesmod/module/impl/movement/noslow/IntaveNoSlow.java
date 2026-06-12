@@ -1,5 +1,6 @@
 package keystrokesmod.module.impl.movement.noslow;
 
+import keystrokesmod.Raven;
 import keystrokesmod.event.PreMotionEvent;
 import keystrokesmod.module.impl.movement.NoSlow;
 import keystrokesmod.module.impl.other.SlotHandler;
@@ -38,8 +39,8 @@ public class IntaveNoSlow extends INoSlow {
                 PacketUtils.sendPacket(new C07PacketPlayerDigging(C07PacketPlayerDigging.Action.RELEASE_USE_ITEM, BlockPos.ORIGIN, EnumFacing.UP));
             }
         } else {
-            if (item instanceof ItemSword) {
-                PacketUtils.sendPacket(new C08PacketPlayerBlockPlacement(SlotHandler.getHeldItem()));
+            if (item instanceof ItemSword && Raven.blockController.canSendBlock()) {
+                Raven.blockController.startBlockPacket();
             }
         }
 

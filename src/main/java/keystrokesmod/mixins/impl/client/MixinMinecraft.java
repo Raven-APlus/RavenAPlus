@@ -11,11 +11,8 @@ import keystrokesmod.module.impl.exploit.ExploitFixer;
 import keystrokesmod.module.impl.render.Animations;
 import keystrokesmod.module.impl.render.FreeLook;
 import keystrokesmod.module.impl.render.Watermark;
-import keystrokesmod.utility.Reflection;
 import keystrokesmod.utility.Utils;
-import keystrokesmod.utility.render.BackgroundUtils;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.main.GameConfiguration;
 import net.minecraft.client.multiplayer.WorldClient;
 import net.minecraft.crash.CrashReport;
 import net.minecraft.util.MovingObjectPosition;
@@ -102,11 +99,5 @@ public abstract class MixinMinecraft {
     @Inject(method = "createDisplay", at = @At(value = "RETURN"))
     private void onSetTitle(@NotNull CallbackInfo ci) {
         Display.setTitle("Raven A+ " + Watermark.VERSION);
-    }
-
-    @Inject(method = "<init>", at = @At("RETURN"))
-    private void onInit(GameConfiguration p_i45547_1_, CallbackInfo ci) {
-        Reflection.set(Minecraft.class, "field_110444_H", BackgroundUtils.getLogoPng());
-        Reflection.set(this, "field_152354_ay", BackgroundUtils.getLogoPng());
     }
 }

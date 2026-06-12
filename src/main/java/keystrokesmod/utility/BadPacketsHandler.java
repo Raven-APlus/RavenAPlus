@@ -1,5 +1,6 @@
 package keystrokesmod.utility;
 
+import keystrokesmod.Raven;
 import keystrokesmod.event.PostUpdateEvent;
 import keystrokesmod.event.ReceivePacketEvent;
 import keystrokesmod.event.SendPacketEvent;
@@ -22,19 +23,37 @@ public class BadPacketsHandler { // ensures you don't get banned
     public int playerSlot = -1;
     public int serverSlot = -1;
 
+    public boolean canSendBlock() {
+        return !C07 && !Raven.blockController.shouldDeferAttack();
+    }
+
+    public boolean canSendAttack() {
+        return !C07 && !delayAttack && !Raven.blockController.shouldDeferAttack();
+    }
+
     @SubscribeEvent(priority = EventPriority.HIGHEST)
     public void onSendPacket(@NotNull SendPacketEvent e) {
         if (e.isCanceled()) {
             return;
         }
-        if (e.getPacket() instanceof C02PacketUseEntity) { // sending a C07 on the same tick as C02 can ban, this usually happens when you unblock and attack on the same tick
-            if (C07) {
+        if (PacketValidation.shouldCancelOutgoing(e.getPacket())) {
+            e.setCanceled(true);
+            return;
+        }
+        if (e.getPacket() instanceof C02PacketUseEntity) {
+            if (!canSendAttack()) {
+                PacketScheduler.queue(e.getPacket(), PacketScheduler.Priority.HIGH);
                 e.setCanceled(true);
                 return;
             }
             C02 = true;
         }
         else if (e.getPacket() instanceof C08PacketPlayerBlockPlacement) {
+            if (!canSendBlock()) {
+                PacketScheduler.queue(e.getPacket(), PacketScheduler.Priority.NORMAL);
+                e.setCanceled(true);
+                return;
+            }
             C08 = true;
         }
         else if (e.getPacket() instanceof C07PacketPlayerDigging) {
@@ -77,5 +96,6 @@ public class BadPacketsHandler { // ensures you don't get banned
             delayAttack = true;
         }
         C08 = C07 = C02 = C09 = false;
+        Raven.blockController.clearDeferAttack();
     }
 }

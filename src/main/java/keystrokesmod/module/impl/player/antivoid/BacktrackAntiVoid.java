@@ -45,15 +45,10 @@ public class BacktrackAntiVoid extends SubMode<AntiVoid> {
         } else {
             if (Utils.overVoid() && !mc.thePlayer.onGround) {
                 if (mc.thePlayer.fallDistance > distance.getInput()) {
-                    mc.thePlayer.setPosition(fallbackPosition.x, fallbackPosition.y, fallbackPosition.z);
-                    if (includeMotion.isToggled()) {
-                        mc.thePlayer.motionX = fallbackMotion.x;
-                        mc.thePlayer.motionY = fallbackMotion.y;
-                        mc.thePlayer.motionZ = fallbackMotion.z;
-                    }
-                    if (clearXZMotion.isToggled()) {
-                        MoveUtil.stop();
-                    }
+                    mc.thePlayer.motionX = -mc.thePlayer.motionX * 0.35;
+                    mc.thePlayer.motionZ = -mc.thePlayer.motionZ * 0.35;
+                    mc.thePlayer.motionY = Math.max(mc.thePlayer.motionY, 0.08);
+                    mc.thePlayer.fallDistance = 0;
                     fallbackPosition = null;
                     fallbackMotion = null;
                     synchronized (blink.blinkedPackets) {

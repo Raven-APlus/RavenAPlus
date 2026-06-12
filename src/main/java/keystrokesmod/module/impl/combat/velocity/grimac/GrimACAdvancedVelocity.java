@@ -8,6 +8,7 @@ import keystrokesmod.module.impl.combat.KillAura;
 import keystrokesmod.module.impl.combat.velocity.GrimACVelocity;
 import keystrokesmod.module.impl.exploit.viaversionfix.ViaVersionFixHelper;
 import keystrokesmod.module.setting.impl.ButtonSetting;
+import keystrokesmod.module.setting.impl.SliderSetting;
 import keystrokesmod.module.setting.impl.SubMode;
 import keystrokesmod.utility.Utils;
 import net.minecraft.entity.Entity;
@@ -24,7 +25,7 @@ import javax.vecmath.Vector2d;
 public class GrimACAdvancedVelocity extends SubMode<GrimACVelocity> {
     private final ButtonSetting notWhileEating;
     private final ButtonSetting debug;
-    private final ButtonSetting test;
+    private final SliderSetting reduceXZSetting;
 
     public boolean velocityInput;
     public float velocityYaw;
@@ -36,7 +37,7 @@ public class GrimACAdvancedVelocity extends SubMode<GrimACVelocity> {
         super(name, parent);
         this.registerSetting(notWhileEating = new ButtonSetting("Not while eating", false));
         this.registerSetting(debug = new ButtonSetting("Debug", false));
-        this.registerSetting(test = new ButtonSetting("Test", false));
+        this.registerSetting(reduceXZSetting = new SliderSetting("Reduce XZ", 0.078, 0, 1, 0.001));
     }
 
     @Override
@@ -47,7 +48,7 @@ public class GrimACAdvancedVelocity extends SubMode<GrimACVelocity> {
     @SubscribeEvent
     public void onLivingUpdate(LivingEvent.@NotNull LivingUpdateEvent event) {
         if (event.entityLiving != mc.thePlayer) return;
-        if (ViaVersionFixHelper.is122() || test.isToggled()) {
+        if (ViaVersionFixHelper.is122()) {
             if (velocityInput) {
                 if (attacked) {
                     mc.thePlayer.motionX *= reduceXZ;
@@ -103,7 +104,7 @@ public class GrimACAdvancedVelocity extends SubMode<GrimACVelocity> {
                 mc.getNetHandler().getNetworkManager().sendPacket(new C0BPacketEntityAction(mc.thePlayer, C0BPacketEntityAction.Action.STOP_SPRINTING));
             }
             attacked = true;
-            reduceXZ = 0.07776;
+            reduceXZ = reduceXZSetting.getInput();
             velocityYaw = yaw;
             if (debug.isToggled()) {
                 Utils.sendMessage("Yaw: " + Math.round(velocityYaw * 100) / 100f + ", Diff: " + Math.round(yawDiff * 100) / 100f + ", Speed: " + Math.round(speed * 100) / 100f);

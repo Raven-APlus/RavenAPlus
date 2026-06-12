@@ -620,6 +620,9 @@ public class Scaffold extends IAutoClicker {
                         if (!optional.isPresent()) continue;
 
                         Triple<BlockPos, EnumFacing, keystrokesmod.script.classes.Vec3> placeSide = optional.get();
+                        if (polar.isToggled() && !keystrokesmod.utility.world.ScaffoldEngine.canPolarExpandPlace(targetPos, placeSide.getMiddle())) {
+                            continue;
+                        }
 
                         if (placeSide.getRight().distanceTo(eyePos) > expandDistance.getInput()) break;
 

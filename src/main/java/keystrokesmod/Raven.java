@@ -49,6 +49,8 @@ public class Raven {
     public static ScriptManager scriptManager;
     public static Profile currentProfile;
     public static BadPacketsHandler badPacketsHandler;
+    public static BlockController blockController;
+    public static PacketScheduler packetScheduler;
     public static ProgressManager progressManager;
     @SuppressWarnings({"unused", "FieldMayBeFinal"})
     private boolean loaded = false;
@@ -70,6 +72,8 @@ public class Raven {
         MinecraftForge.EVENT_BUS.register(new KeySrokeRenderer());
         MinecraftForge.EVENT_BUS.register(new Ping());
         MinecraftForge.EVENT_BUS.register(badPacketsHandler = new BadPacketsHandler());
+        MinecraftForge.EVENT_BUS.register(blockController = new BlockController());
+        MinecraftForge.EVENT_BUS.register(packetScheduler = new PacketScheduler());
         MinecraftForge.EVENT_BUS.register(progressManager = new ProgressManager());
         Reflection.getFields();
         Reflection.getMethods();

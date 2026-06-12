@@ -6,12 +6,14 @@ import keystrokesmod.mixins.impl.client.MinecraftAccessor;
 import keystrokesmod.mixins.impl.client.PlayerControllerMPAccessor;
 import keystrokesmod.module.impl.combat.autoclicker.DragClickAutoClicker;
 import keystrokesmod.module.impl.combat.autoclicker.IAutoClicker;
+import keystrokesmod.module.impl.combat.autoclicker.LowCPSAutoClicker;
 import keystrokesmod.module.impl.combat.autoclicker.NormalAutoClicker;
 import keystrokesmod.module.impl.combat.autoclicker.RecordAutoClicker;
 import keystrokesmod.module.setting.impl.ButtonSetting;
 import keystrokesmod.module.setting.impl.ModeSetting;
 import keystrokesmod.module.setting.impl.ModeValue;
 import keystrokesmod.utility.CoolDown;
+import keystrokesmod.utility.RotationUtils;
 import keystrokesmod.utility.Utils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.inventory.GuiContainer;
@@ -22,6 +24,7 @@ public class AutoClicker extends IAutoClicker {
     private final ModeValue mode;
     private final ButtonSetting breakBlocks;
     private final ButtonSetting jitter;
+    private final ButtonSetting gcdJitter;
     private final ButtonSetting inventoryFill;
     private final ModeSetting clickSound;
 
@@ -36,10 +39,12 @@ public class AutoClicker extends IAutoClicker {
                 .add(new NormalAutoClicker("Normal", this, true, false))
                 .add(new DragClickAutoClicker("Drag Click", this, true, false))
                 .add(new RecordAutoClicker("Record", this, true, false))
+                .add(new LowCPSAutoClicker("Low CPS", this, true, false))
                 .setDefaultValue("Normal")
         );
         this.registerSetting(breakBlocks = new ButtonSetting("Break blocks", false));
         this.registerSetting(jitter = new ButtonSetting("Jitter", false));
+        this.registerSetting(gcdJitter = new ButtonSetting("GCD jitter", true, jitter::isToggled));
         this.registerSetting(inventoryFill = new ButtonSetting("Inventory fill", false));
         this.registerSetting(clickSound = new ModeSetting("Click sound", new String[]{"None", "Standard", "Double", "Alan"}, 0));
     }
@@ -72,8 +77,21 @@ public class AutoClicker extends IAutoClicker {
     @Override
     public void onUpdate() {
         if (!coolDown.hasFinished() && this.jitter.isToggled()) {
-            mc.thePlayer.rotationYaw += (float) (((Math.random() - 0.5) * 400 / Minecraft.getDebugFPS()) * directionX);
-            mc.thePlayer.rotationPitch += (float) (((Math.random() - 0.5) * 400 / Minecraft.getDebugFPS()) * directionY) * mc.gameSettings.mouseSensitivity * 2;
+            float yawDelta = (float) (((Math.random() - 0.5) * 400 / Minecraft.getDebugFPS()) * directionX);
+            float pitchDelta = (float) (((Math.random() - 0.5) * 400 / Minecraft.getDebugFPS()) * directionY) * mc.gameSettings.mouseSensitivity * 2;
+            if (gcdJitter.isToggled()) {
+                float[] fixed = RotationUtils.fixRotation(
+                        mc.thePlayer.rotationYaw + yawDelta,
+                        mc.thePlayer.rotationPitch + pitchDelta,
+                        mc.thePlayer.rotationYaw,
+                        mc.thePlayer.rotationPitch
+                );
+                mc.thePlayer.rotationYaw = fixed[0];
+                mc.thePlayer.rotationPitch = fixed[1];
+            } else {
+                mc.thePlayer.rotationYaw += yawDelta;
+                mc.thePlayer.rotationPitch += pitchDelta;
+            }
         }
     }
 

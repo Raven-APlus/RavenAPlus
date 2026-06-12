@@ -43,8 +43,6 @@ public class NormalAutoClicker extends SubMode<IAutoClicker> {
     public void onPreMotion(PreMotionEvent event) {
         clickStopWatch.setCooldown(nextSwing);
         if (clickStopWatch.hasFinished()) {
-            final long clicks = (long) (Utils.randomizeDouble(minCPS.getInput(), maxCPS.getInput()));
-
             if (Mouse.isButtonDown(0) || always) {
                 ticksDown++;
             } else {
@@ -54,7 +52,9 @@ public class NormalAutoClicker extends SubMode<IAutoClicker> {
             if (this.nextSwing >= 50 * 2 && butterFly.isToggled()) {
                 this.nextSwing = (long) (Math.random() * 100);
             } else {
-                this.nextSwing = 1000 / clicks;
+                double cappedMax = Math.min(maxCPS.getInput(), 14);
+                double cappedMin = Math.min(minCPS.getInput(), cappedMax);
+                this.nextSwing = (long) (1000 / Utils.randomizeDouble(cappedMin, cappedMax));
             }
 
             if (rightClick && ((Mouse.isButtonDown(1) && !Mouse.isButtonDown(0)) || always)) {

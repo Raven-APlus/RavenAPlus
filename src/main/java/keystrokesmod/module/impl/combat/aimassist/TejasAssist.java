@@ -56,8 +56,9 @@ public class TejasAssist extends SubMode<AimAssist> {
                 mc.thePlayer.rotationYaw += val;
             }
             if (aimPitch.isToggled()) {
-                double complimentSpeed = Utils.PitchFromEntity(target, (float) pitchOffSet.getInput()) * (ThreadLocalRandom.current().nextDouble(complimentPitch.getInput() - 1.47328, complimentPitch.getInput() + 2.48293) / 100);
-                float val = (float) (-(complimentSpeed + (n / (101.0D - (float) ThreadLocalRandom.current().nextDouble(speedPitch.getInput() - 4.723847, speedPitch.getInput())))));
+                double pitchFov = Utils.PitchFromEntity(target, (float) pitchOffSet.getInput());
+                double complimentSpeed = pitchFov * (ThreadLocalRandom.current().nextDouble(complimentPitch.getInput() - 1.47328, complimentPitch.getInput() + 2.48293) / 100);
+                float val = (float) (-(complimentSpeed + (pitchFov / (101.0D - (float) ThreadLocalRandom.current().nextDouble(speedPitch.getInput() - 4.723847, speedPitch.getInput())))));
                 mc.thePlayer.rotationPitch += val;
             }
         }

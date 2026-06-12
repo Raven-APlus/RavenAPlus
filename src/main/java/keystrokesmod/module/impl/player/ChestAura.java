@@ -84,6 +84,8 @@ public class ChestAura extends IAutoClicker {
             return;
         }
 
+        pruneOpenedChests();
+
         target = getNearestChest();
 
         if (target != null) {
@@ -93,7 +95,7 @@ public class ChestAura extends IAutoClicker {
             if (!mc.thePlayer.isSneaking() && click && mc.currentScreen == null) {
                 MovingObjectPosition hitResult;
                 if (rayCast.isToggled()) {
-                    hitResult = RotationUtils.rayCast(4.5, RotationHandler.getRotationYaw(), RotationHandler.getRotationPitch());
+                    hitResult = RotationUtils.rayCast(aimRange.getInput(), RotationHandler.getRotationYaw(), RotationHandler.getRotationPitch());
                 } else {
                     if (AimSimulator.equals(
                             new Vec2(yaw, pitch),
@@ -183,6 +185,20 @@ public class ChestAura extends IAutoClicker {
             ));
         }
         return null;
+    }
+
+    private void pruneOpenedChests() {
+        opened.removeIf(pos -> {
+            if (mc.theWorld == null) return true;
+            if (!mc.theWorld.isBlockLoaded(pos)) return true;
+            TileEntity tileEntity = mc.theWorld.getTileEntity(pos);
+            if (!(tileEntity instanceof TileEntityChest)) return true;
+            return eyePosDistanceSq(pos) > aimRange.getInput() * aimRange.getInput() * 4;
+        });
+    }
+
+    private double eyePosDistanceSq(BlockPos pos) {
+        return Utils.getEyePos().distanceTo(new Vec3(pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5));
     }
 
     @Override

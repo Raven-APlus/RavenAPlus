@@ -2,6 +2,7 @@ package keystrokesmod.module.impl.combat;
 
 
 import keystrokesmod.module.Module;
+import keystrokesmod.module.impl.combat.aimassist.GrimAimAssist;
 import keystrokesmod.module.impl.combat.aimassist.NormalAimAssist;
 import keystrokesmod.module.impl.combat.aimassist.TejasAssist;
 import keystrokesmod.module.setting.impl.ModeValue;
@@ -14,7 +15,8 @@ public class AimAssist extends Module {
         this.registerSetting(mode = new ModeValue("Mode", this)
                 .add(new NormalAimAssist("Normal", this))
                 .add(new TejasAssist("Tejas", this))
-                .setDefaultValue("Original"));
+                .add(new GrimAimAssist("GrimAC", this))
+                .setDefaultValue("Normal"));
     }
 
     public void onEnable() {

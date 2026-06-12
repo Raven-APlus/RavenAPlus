@@ -47,7 +47,7 @@ public class LagCriticals extends SubMode<Criticals> {
                 reset();
                 startLag = -1;
             }
-        } else if (mc.thePlayer.motionY < 0 && !mc.thePlayer.onGround && !delayed) {
+        } else if (mc.thePlayer.motionY < -(0.01 + Math.random() * 0.04) && !mc.thePlayer.onGround && !delayed) {
             if (delayedPackets.isEmpty() && chance.getInput() != 100 && Math.random() * 100 > chance.getInput()) {
                 delayed = true;
                 return;

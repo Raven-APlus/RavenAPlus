@@ -213,18 +213,16 @@ public final class RotationHandler extends Module {
 
     @SubscribeEvent(priority = EventPriority.LOWEST)
     public void onPreMotion(PreMotionEvent event) {
-        if (rotationYaw != null) {
-            final float yaw = rotationYaw;
-            event.setYaw(yaw);
-            // RenderUtils.renderPitch handle this
-//            mc.thePlayer.rotationYawHead = yaw;
-
-        }
-        if (rotationPitch != null) {
-            final float pitch = rotationPitch;
-            event.setPitch(pitch);
-            // RenderUtils.renderPitch handle this
-//            mc.thePlayer.renderPitchHead = pitch;
+        if (rotationYaw != null || rotationPitch != null) {
+            float baseYaw = rotationYaw != null ? rotationYaw : mc.thePlayer.rotationYaw;
+            float basePitch = rotationPitch != null ? rotationPitch : mc.thePlayer.rotationPitch;
+            float[] fixed = RotationUtils.fixRotation(baseYaw, basePitch, prevRotationYaw, prevRotationPitch);
+            if (rotationYaw != null) {
+                event.setYaw(fixed[0]);
+            }
+            if (rotationPitch != null) {
+                event.setPitch(fixed[1]);
+            }
         }
     }
 

@@ -13,8 +13,6 @@
     "entity.MixinEntityPlayer",
     "entity.MixinEntityPlayerSP",
     "event.MixinEventBus",
-    "gui.MixinSplashProgress",
-    "gui.MixinSplashProgressThread",
     "network.C02PacketUseEntityAccessor",
     "network.C03PacketPlayerAccessor",
     "network.C07PacketPlayerDiggingAccessor",

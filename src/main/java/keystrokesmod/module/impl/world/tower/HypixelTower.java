@@ -28,7 +28,17 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 public class HypixelTower extends SubMode<Tower> {
-    public static final Set<EnumFacing> LIMIT_FACING = new HashSet<>(Collections.singleton(EnumFacing.SOUTH));
+    public static Set<EnumFacing> getLimitFacing() {
+        int index = (net.minecraft.util.MathHelper.floor_double((mc.thePlayer.rotationYaw * 4.0 / 360.0) + 0.5) & 3);
+        EnumFacing facing;
+        switch (index) {
+            case 0: facing = EnumFacing.SOUTH; break;
+            case 1: facing = EnumFacing.WEST; break;
+            case 2: facing = EnumFacing.NORTH; break;
+            default: facing = EnumFacing.EAST; break;
+        }
+        return new HashSet<>(Collections.singleton(facing));
+    }
     public static final MoveCorrect moveCorrect = new MoveCorrect(0.3, MoveCorrect.Mode.POSITION);
 
     private final ButtonSetting notWhileMoving;
@@ -133,7 +143,7 @@ public class HypixelTower extends SubMode<Tower> {
                 return;
             Optional<Triple<BlockPos, EnumFacing, Vec3>> optionalPlaceSide = RotationUtils.getPlaceSide(
                     lastScaffoldPlace.getBlockPos().add(deltaPlace),
-                    LIMIT_FACING
+                    getLimitFacing()
             );
             if (!optionalPlaceSide.isPresent())
                 return;

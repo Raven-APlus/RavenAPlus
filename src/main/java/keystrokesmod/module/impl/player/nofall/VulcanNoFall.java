@@ -1,10 +1,10 @@
 package keystrokesmod.module.impl.player.nofall;
 
 import keystrokesmod.event.SendPacketEvent;
+import keystrokesmod.mixins.impl.network.C03PacketPlayerAccessor;
 import keystrokesmod.module.impl.player.NoFall;
 import keystrokesmod.module.setting.impl.SliderSetting;
 import keystrokesmod.module.setting.impl.SubMode;
-import keystrokesmod.utility.Reflection;
 import net.minecraft.network.play.client.C03PacketPlayer;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import org.jetbrains.annotations.NotNull;
@@ -31,13 +31,11 @@ public class VulcanNoFall extends SubMode<NoFall> {
                 return;
             }
 
-            try {
-                Reflection.C03PacketPlayerOnGround.set(event.getPacket(), true);
-                mc.thePlayer.fallDistance = 0;
-                mc.thePlayer.setVelocity(0, 0, 0);
-                currentModCount++;
-            } catch (IllegalAccessException ignored) {
-            }
+            C03PacketPlayerAccessor accessor = (C03PacketPlayerAccessor) event.getPacket();
+            accessor.setOnGround(true);
+            mc.thePlayer.fallDistance = 0;
+            mc.thePlayer.setVelocity(0, 0, 0);
+            currentModCount++;
         }
     }
 
