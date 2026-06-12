@@ -11,6 +11,7 @@ import keystrokesmod.module.impl.player.*;
 import keystrokesmod.module.impl.render.*;
 import keystrokesmod.module.impl.world.*;
 import org.jetbrains.annotations.NotNull;
+import net.minecraftforge.common.MinecraftForge;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -114,6 +115,7 @@ public class ModuleManager {
     public static TargetHUD targetHUD;
     public static TargetESP targetESP;
     public static Language language;
+    public static Settings settings;
     public static BedDefender bedDefender;
     public static ChestAura chestAura;
     public static AutoRod autoRod;
@@ -155,7 +157,7 @@ public class ModuleManager {
         this.addModule(dynamicManager = new DynamicManager());
         this.addModule(new Gui());
         // this.addModule(new NyaProxy());
-        this.addModule(new Settings());
+        this.addModule(settings = new Settings());
         this.addModule(new MiddleClick());
         this.addModule(notifications = new Notifications());
         this.addModule(new DiscordRpc());
@@ -340,6 +342,7 @@ public class ModuleManager {
         commandChat.enable();
         notifications.enable();
         clientTheme.enable();
+        MinecraftForge.EVENT_BUS.register(settings);
         modules.sort(Comparator.comparing(Module::getPrettyName));
     }
 

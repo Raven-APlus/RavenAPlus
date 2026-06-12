@@ -311,7 +311,7 @@ public class Reflection {
 
     public static boolean setBlocking(boolean blocking) {
         try {
-            itemInUseCount.set(Minecraft.getMinecraft().thePlayer, blocking ? 1 : 0);
+            itemInUseCount.set(Minecraft.getMinecraft().thePlayer, blocking ? 72000 : 0);
         } catch (Exception e) {
             e.printStackTrace();
             Utils.sendMessage("§cFailed to set block state client-side.");

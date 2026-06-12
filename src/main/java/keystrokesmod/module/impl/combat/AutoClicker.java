@@ -38,7 +38,7 @@ public class AutoClicker extends IAutoClicker {
                 .add(new RecordAutoClicker("Record", this, true, false))
                 .setDefaultValue("Normal")
         );
-        this.registerSetting(breakBlocks = new ButtonSetting("Break blocks", true));
+        this.registerSetting(breakBlocks = new ButtonSetting("Break blocks", false));
         this.registerSetting(jitter = new ButtonSetting("Jitter", false));
         this.registerSetting(inventoryFill = new ButtonSetting("Inventory fill", false));
         this.registerSetting(clickSound = new ModeSetting("Click sound", new String[]{"None", "Standard", "Double", "Alan"}, 0));
@@ -89,6 +89,7 @@ public class AutoClicker extends IAutoClicker {
             }
 
             Utils.sendClick(0, true);
+            Utils.sendClick(0, false);
             return true;
         } else if (inventoryFill.isToggled() && mc.currentScreen instanceof GuiContainer) {
             inventoryClick = true;

@@ -3,6 +3,7 @@ package keystrokesmod.mixins.impl.entity;
 import com.mojang.authlib.GameProfile;
 import keystrokesmod.event.*;
 import keystrokesmod.module.ModuleManager;
+import keystrokesmod.module.impl.combat.KillAura;
 import keystrokesmod.module.impl.movement.NoSlow;
 import keystrokesmod.module.impl.movement.Sprint;
 import keystrokesmod.module.impl.movement.fly.FakeFly;
@@ -300,21 +301,24 @@ public abstract class MixinEntityPlayerSP extends AbstractClientPlayer {
 
         // no slow
         @SuppressWarnings("EqualsBetweenInconvertibleTypes")
-        final boolean autoBlocking = ModuleManager.killAura != null
-                && ModuleManager.killAura.isEnabled()
-                && ModuleManager.killAura.block.get()
+        final KillAura killAura = ModuleManager.killAura;
+        final boolean autoBlocking = killAura != null
+                && killAura.isEnabled()
                 && Objects.equals(this, Minecraft.getMinecraft().thePlayer)
-                && ModuleManager.killAura.autoBlockMode.getInput() != 0;
+                && killAura.isClientBlocking()
+                && (killAura.autoBlockMode.getInput() != 0
+                || killAura.rmbDown
+                || !killAura.manualBlock.isToggled());
         final boolean usingItemModified = this.isUsingItem() || autoBlocking;
         boolean stopSprint = Sprint.stopSprint() || this.isUsingItem()
                 && (ModuleManager.noSlow != null && ModuleManager.noSlow.isEnabled() && NoSlow.getForwardSlowed() <= 0.8)
-                || (autoBlocking && ModuleManager.killAura.slowdown.getInput() <= 0.8);
+                || (autoBlocking && killAura.slowdown.getInput() <= 0.8);
 
         if (usingItemModified && !this.isRiding()) {
             MovementInput var10000 = this.movementInput;
-            var10000.moveStrafe *= autoBlocking ? (float) ModuleManager.killAura.slowdown.getInput() : NoSlow.getStrafeSlowed();
+            var10000.moveStrafe *= autoBlocking ? (float) killAura.slowdown.getInput() : NoSlow.getStrafeSlowed();
             var10000 = this.movementInput;
-            var10000.moveForward *= autoBlocking ? (float) ModuleManager.killAura.slowdown.getInput() : NoSlow.getForwardSlowed();
+            var10000.moveForward *= autoBlocking ? (float) killAura.slowdown.getInput() : NoSlow.getForwardSlowed();
             if (stopSprint) {
                 this.sprintToggleTimer = 0;
             }
